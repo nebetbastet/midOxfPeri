@@ -60,3 +60,14 @@ Je n'ai choisi que certaines variables pour réaliser mon analyse :
 
 A part le diamètre (dm), toutes ces variables sont des ratios.
 J'ai réalisé une ACP sur ces variables, et un clustering sur les premières dimensions de l'ACP (j'ai choisi le nombre d'axes me permettant d'avoir au moins 80% de la variance).
+
+### Résultats 
+Je suis encore au début de l'analyse, je ne préfère pas encore rendre publiques mes résultats.
+🔴 Vous pouvez m'aider à avancer dans ce projet :
++ soit en m'envoyant des photographies de vos Perisphinctidae de l'Oxfordien Moyen bien identifiées (telles que détaillées dans le paragraphe "Photographie des ammonites") avec leur nom.
++ soit en m'aidant à identifier mes propres ammonites 
+
+Si vous voulez aider ou juste en savoir plus, n'hésitez pas à me contacter à nebetbastet[at]hotmail.com
+
+### Application en ligne
+Si le project fonctionne bien (c'est-à-dire si les mesures biométriques permettent d'identifier le bon taxon), je tacherai de faire une application en ligne pour que chacun et chacune puisse identifier sa Perisphinctidae à partir de mesures biométriques.
