@@ -44,6 +44,7 @@ data["13","label"]="Otosphinctes (?)"
 data["14","label"]="Otosphinctes (?)"
 data["19","label"]="Passendorferia birmensdorfense (?)"
 data["21","label"]="Otosphinctes (?)"
+data["35","label"]="Passendorferia birmensdorfense (?)"
 col_label=hues::iwanthue(length(unique(data$label))) %>% setNames(unique(data$label))
 col_label=c(`?` = "#95BBB6", `Otosphinctes (?)` = "#9041CC", 
             `Passendorferia birmensdorfense (?)` = "#857028", 
@@ -67,6 +68,8 @@ pheatmap(t(data_pca), cutree_cols = 5, cutree_rows = 4,
 
 # PCA #####
 res.pca=PCA(data_pca,graph = FALSE)
+pc_var=cumsum(res.pca$eig[,2])
+nb_axe=min(which(pc_var>80))
 
 plot(res.pca,choix="var")
 plot(res.pca,c(1,3),choix="var")
@@ -98,7 +101,7 @@ ggplot(data_plot,aes(x=Dim.1,y=Dim.3,label=Row.names,size=5)) +
   scale_color_manual(values=col_label)+theme_bw() 
 
 # clustering #####
-hc=hclust(dist((pca.coord[,1:3])), method="ward.D2")
+hc=hclust(dist((pca.coord[,1:nb_axe])), method="ward.D2")
 k=6
 clustering=cutree(hc,k=k) 
 names(clustering)=rownames(pca.coord)
