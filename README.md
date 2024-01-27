@@ -63,6 +63,7 @@ J'ai réalisé une ACP sur ces variables, et un clustering sur les premières di
 
 ### Résultats 
 Je suis encore au début de l'analyse, je ne préfère pas encore rendre publiques mes résultats.
+
 🔴 Vous pouvez m'aider à avancer dans ce projet :
 + soit en m'envoyant des photographies de vos Perisphinctidae de l'Oxfordien Moyen bien identifiées (telles que détaillées dans le paragraphe "Photographie des ammonites") avec leur nom.
 + soit en m'aidant à identifier mes propres ammonites 
