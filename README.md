@@ -11,7 +11,16 @@ Est-ce que cette classification correspondra à la taxonomie ? Mystère pour l�
 </p>
 
 ## Méthode
-### Etape 1 : photographie des mesures
+### Etape 1 : photographie des ammonites
+Pour pouvoir prendre des mesures sur mes ammonites, je les photographie de deux façon : de face et sur le côté, à chaque fois avec une échelle.
+Pour la photo sur le côté, je me situe "perpendiculairement" à la dernière spire (cf. la position de l'oeil sur l'image ci-dessous)
+![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/613d0d4a-aeb2-4269-b317-dbd7c5cd6da4)
+
+Concrètement, pour chacune des ammonites que je souhaite mesures, j'obtiens ce genre d'image :
+![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/004ce86d-58cd-4145-b924-bfdac3b2632a)
+![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/3e8f11e3-348b-4214-a8d4-51b061440960)
+
+
 ### Etape 2 : mesures
 ### Etape 3 : calcul de ratios
 ### Etape 4 : analyse
