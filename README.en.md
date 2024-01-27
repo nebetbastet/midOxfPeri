@@ -38,17 +38,17 @@ I added a novel measurement: the gap between the ribs at the last whorl (**e**) 
 
 ![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/5b7373e7-f30d-4ce0-b35d-1e09f858102d)
 
-### Calcul de ratios
-Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve pour la plupart dans la littérature scientifique :
-+ **UWI** = uw/dm : Umbilical Width Index = Indice de Largeur Ombilical, représente le rapport entre le diamètre de l'ombilic et celui de la coquille, ce qui permet de mesurer le degré d'involution (plus une coquille est involute, plus les tours se recouvrent)
-+ **WWI** = ww/wh : Whorl width index = Indice de Largeur de la Spire, mesure le ratio entre la largeur et la hauteur d'une spire. Cela permet de mesurer si une coquille est plutôt mince ou épaisse (niveau de compression).
-+ **Shape** = ww/dm : Shape = Forme, représente ici la largeur de la coquille sur son diamètre. C'est une autre mesure du niveau de compression de la coquille.
-+ **WER** =  (dm/(dm-wh))^2 : Whorl expansion rate = Taux d'expansion des spires, représente le taux auquel le diamètre de la coquille augmente par tour.
-+ **WHI** = wh/dm : Whorl height index = Indice de Hauteur de la spire, represente le ratio de la hauteur de la dernière spire et le diamètre de la coquille entière. C'est une autre façon de calculer le taux auquel le diamètre de la coquille augmente par tour
-+ **o** = e/dm : ornementation, densité de la costulation
+### Ratio Computing
+These measurements allowed me to calculate new ratios, most of which are found in scientific literature:
++ **UWI** = uw/dm : Umbilical Width Index = Measures the ratio between umbilical diameter and shell diameter, providing a measure of involution (more involution indicates more overlap of whorls)
++ **WWI** = ww/wh : Whorl width index = measures the ratio between the width and height of a whorl, indicating whether a shell is thin or thick (level of compression).
++ **Shape** = ww/dm : Shape = represents the width of the shell relative to its diameter. It is another measure of shell compression.
++ **WER** =  (dm/(dm-wh))^2 : Whorl expansion rate = represents the rate at which the shell diameter increases per revolution.
++ **WHI** = wh/dm : Whorl height index = represents the ratio of the height of the last whorl to the diameter of the entire shell. It is another way to calculate the rate at which the shell diameter increases per revolution.
++ **o** = e/dm : ornamentation, rib density.
 
-### Méthode d'analyse
-Je n'ai choisi que certaines variables pour réaliser mon analyse :
+### Analysis method
+I selected only certain variables for my analysis:
 + dm
 + WWI
 + WER
@@ -57,17 +57,16 @@ Je n'ai choisi que certaines variables pour réaliser mon analyse :
 + WHI
 + o
 
-A part le diamètre (dm), toutes ces variables sont des ratios.
-J'ai réalisé une ACP sur ces variables, et un clustering sur les premières dimensions de l'ACP (j'ai choisi le nombre d'axes me permettant d'avoir au moins 80% de la variance).
+Except for diameter (dm), all these variables are ratios. I performed Principal Component Analysis (PCA) on these variables and clustering on the first dimensions of PCA (I chose the number of axes that allowed me to capture at least 80% of the variance).
 
-### Résultats 
-Je suis encore au début de l'analyse, je ne préfère pas encore rendre publiques mes résultats.
+### Results
+I am still at the early stages of the analysis, and I prefer not to disclose my results yet.
 
-🔴 Vous pouvez m'aider à avancer dans ce projet :
-+ soit en m'envoyant des photographies de vos Perisphinctidae de l'Oxfordien Moyen bien identifiées (telles que détaillées dans le paragraphe "Photographie des ammonites") avec leur nom.
-+ soit en m'aidant à identifier mes propres ammonites 
+🔴 You can help advance this project:
++ by sending photographs of your well-identified Middle Oxfordian Perisphinctidae (as detailed in the "Photography of Ammonites" paragraph) with their names.
++ by helping in the identification of my own ammonites.
 
-Si vous voulez aider ou juste en savoir plus, n'hésitez pas à me contacter à nebetbastet[at]hotmail.com
+If you want to help or just learn more, feel free to contact me at nebetbastet[at]hotmail.com.
 
-### Application en ligne
-Si le project fonctionne bien (c'est-à-dire si les mesures biométriques permettent d'identifier le bon taxon), je tacherai de faire une application en ligne pour que chacun et chacune puisse identifier sa Perisphinctidae à partir de mesures biométriques.
+### Online Application
+If the project progresses successfully (i.e., if biometric measurements allow accurate identification of the taxon), I will try to create an online application so that everyone can identify their Perisphinctidae based on biometric measurements.
