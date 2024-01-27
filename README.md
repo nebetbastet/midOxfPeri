@@ -10,4 +10,8 @@ Est-ce que cette classification correspondra à la taxonomie ? Mystère pour l�
 <img src="https://private-user-images.githubusercontent.com/6839261/300179184-f6a6aca8-c697-4c62-b028-4816182c9ad8.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDYzNjA3MzcsIm5iZiI6MTcwNjM2MDQzNywicGF0aCI6Ii82ODM5MjYxLzMwMDE3OTE4NC1mNmE2YWNhOC1jNjk3LTRjNjItYjAyOC00ODE2MTgyYzlhZDgucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEyNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMjdUMTMwMDM3WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MzliOGU5ZGIzYzU5NDg4M2FlYmYzYjc5Njk0ZjFkMGU0MzEwMzJiNTFiMzIxNWEwNzg2OGYyMTI0NjM0ODY2MSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.wixKmvV5UvsP9mVzgDbCetIslcUHctdbGGlMT5uTINA" width="150"/>
 </p>
 
-
+## Méthode
+### Etape 1 : photographie des mesures
+### Etape 2 : mesures
+### Etape 3 : calcul de ratios
+### Etape 4 : analyse
