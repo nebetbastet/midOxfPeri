@@ -9,6 +9,7 @@ library(pheatmap)
 #500 https://ammonites.org/Fiches/0524.htms
 
 dirs=list.dirs() %>% .[.!="."]
+dirs=dirs[grepl("Ammonite",dirs)]
 
 data=c()
 for (d in dirs) {
@@ -34,13 +35,13 @@ ref$Numéro=as.character(ref$Numéro)
 ref=ref[ref$Numéro%in%rownames(data),]
 data$label="?"
 data[as.character(ref$Numéro),"label"]=ref$Genre
+data=data[data$label!="Dichotomoceras" ,]
 data["3","label"]="Otosphinctes (?)"
 data["7","label"]="Otosphinctes (?)"
 data["8","label"]="Otosphinctes (?)"
 data["11","label"]="Otosphinctes (?)"
 data["13","label"]="Otosphinctes (?)"
 data["14","label"]="Otosphinctes (?)"
-data["18","label"]="Otosphinctes (?)"
 data["19","label"]="Passendorferia birmensdorfense (?)"
 data["21","label"]="Otosphinctes (?)"
 col_label=hues::iwanthue(length(unique(data$label))) %>% setNames(unique(data$label))
@@ -68,6 +69,7 @@ pheatmap(t(data_pca), cutree_cols = 5, cutree_rows = 4,
 res.pca=PCA(data_pca,graph = FALSE)
 
 plot(res.pca,choix="var")
+plot(res.pca,c(1,3),choix="var")
 
 pca.coord=res.pca$ind$coord
 data_plot=merge(pca.coord,data,by="row.names") %>%
@@ -96,7 +98,27 @@ ggplot(data_plot,aes(x=Dim.1,y=Dim.3,label=Row.names,size=5)) +
   scale_color_manual(values=col_label)+theme_bw() 
 
 # clustering #####
+hc=hclust(dist((pca.coord[,1:3])), method="ward.D2")
+k=6
+clustering=cutree(hc,k=k) 
+names(clustering)=rownames(pca.coord)
+annotation_col$clustering=paste0("cl",clustering[rownames(annotation_col)])
+pheatmap(t(pca.coord[,1:3]), 
+         cutree_cols = k,
+         annotation_col=annotation_col,
+         annotation_color=list(label=col_label))
 
+
+data_plot$clustering=paste0("cl",clustering[data_plot$Row.names])
+
+ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = clustering)) +
+  theme_bw() 
+ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = label)) +
+  theme_bw() 
 
 # Umap ####
 res_umap=umap(pca.coord)
@@ -107,3 +129,7 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = label)) +
   scale_color_manual(values=col_label)+theme_bw() 
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = clustering)) +
+  theme_bw() 
