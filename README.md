@@ -11,7 +11,7 @@ Est-ce que cette classification correspondra à la taxonomie ? Mystère pour l�
 </p>
 
 ## Méthode
-### Etape 1 : photographie des ammonites
+### Photographie des ammonites
 Pour pouvoir prendre des mesures sur mes ammonites, je les photographie de deux façon : de face et sur le côté, à chaque fois avec une échelle.
 Pour la photo sur le côté, je me situe "perpendiculairement" à la dernière spire (cf. la position de l'oeil sur l'image ci-dessous)
 ![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/613d0d4a-aeb2-4269-b317-dbd7c5cd6da4)
@@ -20,14 +20,27 @@ Concrètement, pour chacune des ammonites que je souhaite mesures, j'obtiens ce 
 
 <img src="https://private-user-images.githubusercontent.com/6839261/300180447-004ce86d-58cd-4145-b924-bfdac3b2632a.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDYzNjIyMjYsIm5iZiI6MTcwNjM2MTkyNiwicGF0aCI6Ii82ODM5MjYxLzMwMDE4MDQ0Ny0wMDRjZTg2ZC01OGNkLTQxNDUtYjkyNC1iZmRhYzNiMjYzMmEucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEyNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMjdUMTMyNTI2WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NDUxZmIwNjliN2RkMzlhZTJkZTVjNzE3NDA2YjMxNTQ2YzVmNzFmMDM4ODY0NTkwZWM2NWIxNmM3ZTZmOTEzNCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.TUBkyTrInkQhO2nW-dHOJssBZQbtwmsQCCofVFB2UbM" height="250"/> <img src="https://private-user-images.githubusercontent.com/6839261/300180526-3e8f11e3-348b-4214-a8d4-51b061440960.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDYzNjIyMjYsIm5iZiI6MTcwNjM2MTkyNiwicGF0aCI6Ii82ODM5MjYxLzMwMDE4MDUyNi0zZThmMTFlMy0zNDhiLTQyMTQtYThkNC01MWIwNjE0NDA5NjAucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEyNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMjdUMTMyNTI2WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9YjIzNWQ3MjEwMzcyNmNhYTcxZjg4ZGFlZGM1MTBlM2Y4YzgwZmYzOWVlZDVlYzQxMTM2YzgxMzA0OGU0NzA1YiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.QoHbuquopJQyr7LaAr0eBVJ-kqLkgK5HqKcMOTmuzjI" height="250"/>
 
-### Etape 2 : mesures
+### Ammonites références
+Afin d'avoir des points de références, j'ai récupéré dans la littérature ou sur certains sites (par ex. https://www.ammonites.org/) des photographies d'ammonites (toujours de face et de côté). En général, le diamètre est indiqué, ce qui me permet d'avoir une échelle.
+Ainsi, dans mes analyses, j'aurai des ammonites pour lesquels j'aurai à la fois les données biométriques et la taxonomie, ce qui peut me permettre de faire le lien entre forme de la coquille et taxonomie.
+
+🔴 **Si vous souhaitez m'aider dans ce projet et que vous avez des Perisphinctidae de l'Oxfordien Moyen bien identifiées, vous pouvez m'envoyer des photographies d'ammonites (telles que détaillées dans le paragraphe précédent) avec leur nom. Mon mail est nebetbastet[at]hotmail.com** 🔴
+
+
+### Mesures
 J'utilise le logiciel [imageJ](https://imagej.net/ij/) pour réaliser mes mesures.
 
-Les mesures que j'ai réalisées sont pour la plupart très classiques et on peut les trouver dans de nombreuses publications scientifiques : diamètre total (**dm**), hauteur de la spire (**wh**), épaisseur de la spire (**ww**) et diamètre de l'ombilic (**uw**).
+Les mesures que j'ai réalisées sont pour la plupart très classiques et on peut les trouver dans de nombreuses publications scientifiques : 
++ diamètre total (**dm**)
++ hauteur de la spire (**wh**)
++ épaisseur de la spire (**ww**)
++ diamètre de l'ombilic (**uw**).
 
 J'ai rajouté une mesure inédite : l'écart entre les côtes au niveau de la dernière spire (**e**) afin de prendre en compte la densité de la costulation.
 ![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/5b7373e7-f30d-4ce0-b35d-1e09f858102d)
 
-### Etape 3 : calcul de ratios
-Ces mesures m'ont permis de calculer de nouveau 
+### Calcul de ratios
+Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve également fréquemment dans la littérature scientifique :
++
+
 ### Etape 4 : analyse
