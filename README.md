@@ -48,6 +48,14 @@ Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve pour la 
 + **WHI** = wh/dm : Whorl height index = Indice de Hauteur de la spire, represente le ratio de la hauteur de la dernière spire et le diamètre de la coquille entière. C'est une autre façon de calculer le taux auquel le diamètre de la coquille augmente par tour
 + **o**=e/dm : ornementation, densité de la costulation
 
-### Etape 4 : analyse
+### Méthode d'analyse
 Je n'ai choisi que certaines variables pour réaliser mon analyse :
-
++ dm
++ WWI
++ WER
++ UWI
++ Shape
++ WHI
++ o
+A part le diamètre, toutes ces variables sont des ratios.
+J'ai réalisé une ACP sur ces variables, et un clustering sur les premières dimensions de l'ACP (j'ai choisi le nombre d'axes me permettant d'avoir au moins 80% de la variance).
