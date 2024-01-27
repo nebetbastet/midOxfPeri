@@ -23,12 +23,11 @@ Concrètement, pour chacune des ammonites que je souhaite mesures, j'obtiens ce 
 ### Etape 2 : mesures
 J'utilise le logiciel [imageJ](https://imagej.net/ij/) pour réaliser mes mesures.
 
-Les mesures que j'ai réalisées sont pour la plupart très classiques et on peut les trouver dans de nombreuses publications scientifiques : diamètre total, hauteur de la spire, épaisseur de la spire, diamètre de l'ombilic.
+Les mesures que j'ai réalisées sont pour la plupart très classiques et on peut les trouver dans de nombreuses publications scientifiques : diamètre total (**dm**), hauteur de la spire (**wh**), épaisseur de la spire (**ww**) et diamètre de l'ombilic (**uw**).
 
-J'ai rajouté une mesure inédite : l'écart entre les côtes (au niveau de la dernière spire) afin de prendre en compte la densité de la costulation.
+J'ai rajouté une mesure inédite : l'écart entre les côtes au niveau de la dernière spire (**e**) afin de prendre en compte la densité de la costulation.
 ![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/5b7373e7-f30d-4ce0-b35d-1e09f858102d)
 
-
-
 ### Etape 3 : calcul de ratios
+Ces mesures m'ont permis de calculer de nouveau 
 ### Etape 4 : analyse
