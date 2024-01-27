@@ -40,7 +40,14 @@ J'ai rajouté une mesure inédite : l'écart entre les côtes au niveau de la de
 ![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/5b7373e7-f30d-4ce0-b35d-1e09f858102d)
 
 ### Calcul de ratios
-Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve également fréquemment dans la littérature scientifique :
-+
+Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve pour la plupart dans la littérature scientifique :
++ **UWI** = uw/dm : Umbilical Width Index = Indice de Largeur Ombilical, représente le rapport entre le diamètre de l'ombilic et celui de la coquille, ce qui permet de mesurer le degré d'involution (plus une coquille est involute, plus les tours se recouvrent)
++ **WWI** = ww/wh : Whorl width index = Indice de Largeur de la Spire, mesure le ratio entre la largeur et la hauteur d'une spire. Cela permet de mesurer si une coquille est plutôt mince ou épaisse (niveau de compression).
++ **Shape** = ww/dm : Shape = Forme, représente ici la largeur de la coquille sur son diamètre. C'est une autre mesure du niveau de compression de la coquille.
++ **WER** =  (dm/(dm-wh))^2 : Whorl expansion rate = Taux d'expansion des spires, représente le taux auquel le diamètre de la coquille augmente par tour.
++ **WHI** = wh/dm : Whorl height index = Indice de Hauteur de la spire, represente le ratio de la hauteur de la dernière spire et le diamètre de la coquille entière. C'est une autre façon de calculer le taux auquel le diamètre de la coquille augmente par tour
++ **o**=e/dm : ornementation, densité de la costulation
 
 ### Etape 4 : analyse
+Je n'ai choisi que certaines variables pour réaliser mon analyse :
+
