@@ -57,5 +57,6 @@ Je n'ai choisi que certaines variables pour réaliser mon analyse :
 + Shape
 + WHI
 + o
-A part le diamètre, toutes ces variables sont des ratios.
+
+A part le diamètre (dm), toutes ces variables sont des ratios.
 J'ai réalisé une ACP sur ces variables, et un clustering sur les premières dimensions de l'ACP (j'ai choisi le nombre d'axes me permettant d'avoir au moins 80% de la variance).
