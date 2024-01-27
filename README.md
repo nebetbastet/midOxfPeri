@@ -46,7 +46,7 @@ Ces mesures m'ont permis de calculer de nouveaux ratios que l'on trouve pour la 
 + **Shape** = ww/dm : Shape = Forme, représente ici la largeur de la coquille sur son diamètre. C'est une autre mesure du niveau de compression de la coquille.
 + **WER** =  (dm/(dm-wh))^2 : Whorl expansion rate = Taux d'expansion des spires, représente le taux auquel le diamètre de la coquille augmente par tour.
 + **WHI** = wh/dm : Whorl height index = Indice de Hauteur de la spire, represente le ratio de la hauteur de la dernière spire et le diamètre de la coquille entière. C'est une autre façon de calculer le taux auquel le diamètre de la coquille augmente par tour
-+ **o**=e/dm : ornementation, densité de la costulation
++ **o** = e/dm : ornementation, densité de la costulation
 
 ### Méthode d'analyse
 Je n'ai choisi que certaines variables pour réaliser mon analyse :
