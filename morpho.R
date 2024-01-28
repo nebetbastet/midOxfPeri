@@ -67,14 +67,15 @@ pheatmap(t(data_pca), cutree_cols = 5, cutree_rows = 4,
          annotation_color=list(label=col_label))
 
 # PCA #####
-res.pca=PCA(data_pca,graph = FALSE)
+ref=which(as.numeric(rownames(data_pca))>=500)
+res.pca=PCA(data_pca,graph = FALSE,ind.sup = ref)
 pc_var=cumsum(res.pca$eig[,2])
 nb_axe=min(which(pc_var>80))
 
 plot(res.pca,choix="var")
 plot(res.pca,c(1,3),choix="var")
 
-pca.coord=res.pca$ind$coord
+pca.coord=rbind(res.pca$ind$coord,res.pca$ind.sup$coord)
 data_plot=merge(pca.coord,data,by="row.names") %>%
   data.frame()
 pheatmap(t(pca.coord),annotation_col=annotation_col,
@@ -106,8 +107,8 @@ k=6
 clustering=cutree(hc,k=k) 
 names(clustering)=rownames(pca.coord)
 annotation_col$clustering=paste0("cl",clustering[rownames(annotation_col)])
-pheatmap(t(pca.coord[,1:3]), 
-         cutree_cols = k,
+pheatmap(t(pca.coord[,1:nb_axe]), 
+         cutree_cols = k,clustering_method="ward.D2",
          annotation_col=annotation_col,
          annotation_color=list(label=col_label))
 
@@ -124,7 +125,7 @@ ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=Row.names,size=5)) +
   theme_bw() 
 
 # Umap ####
-res_umap=umap(pca.coord)
+res_umap=umap(pca.coord[,1:nb_axe])
 colnames(res_umap$layout)=paste0("UMAP",1:2)
 
 data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
@@ -136,3 +137,23 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = clustering)) +
   theme_bw() 
+
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+
+  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
+  scale_color_gradient(low="blue",  high="red")+theme_bw() +
+  ggtitle("UWI")
+
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+
+  geom_text(hjust=0, vjust=0,aes(color = WER)) +
+  scale_color_gradient(low="blue",  high="red")+theme_bw() +
+  ggtitle("WER")
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=Row.names,size=5)) +
+  #geom_point(aes(color = value,size=5))+
+  geom_text(hjust=0, vjust=0,aes(color = dm)) +
+  scale_color_gradient(low="blue",  high="red")+theme_bw() +
+  ggtitle("dm")
