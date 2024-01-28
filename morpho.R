@@ -128,7 +128,7 @@ FUNcluster=function(x,k) {
 
 # Determiner le nombre optimal de clusters
 fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
-k=5
+k=4
 
 clustering=(FUNcluster(pca.coord[,1:nb_axe],k=k))$cluster
 names(clustering)=rownames(pca.coord)
@@ -148,7 +148,37 @@ ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = label)) +
+  scale_color_manual(values=col_label) +
   theme_bw() 
+
+# Median per cluster
+med=apply(data_pca, 2, FUN=function(x) {
+  medx=aggregate(x,by=list(clustering[rownames(data_pca)]),FUN=median)[,2] %>%
+    setNames(paste0("cl",1:k))
+  return(medx)
+})
+pheatmap(t(scale(med)))
+
+data2=data
+data2$Involution=max(data2$UWI)-data2$UWI
+data2$densite=max(data2$o)-data2$o
+Names_var=c("dm"="Taille de la coquille", 
+            "Involution"="Niveau d'involution", 
+            "Shape"="Epaisseur de la coquille", 
+            "WER"="Taux d'augmentation du diamètre de la coquille par tour",
+            "densite"="Densité de la costulation")
+
+unite=c("dm"="cm", 
+        "Involution"="1 - taille_ombilic/taille totale", 
+        "Shape"="cm/cm", 
+        "WER"="cm/cm",
+        "densite"="cm/cm")
+
+for (v in names(Names_var)) {
+  boxplot(data2[,v]~clustering[rownames(data_pca)],
+          main=Names_var[v], xlab="", ylab=unite[v])
+  
+}
 
 # Umap ####
 res_umap=umap(pca.coord[,1:nb_axe])
@@ -183,4 +213,13 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   geom_text(hjust=0, vjust=0,aes(color = dm)) +
   scale_color_gradient(low="blue",  high="red")+theme_bw() +
   ggtitle("dm")
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = label)) +
+  scale_color_manual(values=col_label)+theme_bw() 
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = clustering)) +
+  theme_bw() 
 
