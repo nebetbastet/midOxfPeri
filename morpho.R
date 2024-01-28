@@ -33,7 +33,6 @@ data$o=data$e/data$dm #ornementation
 
 # Reference ammonites ####
 ref.df=openxlsx::read.xlsx("references.xlsx")
-ref.df=ref.df[ref.df$Genre!="Dichotomoceras",] # pas de Dichotomoceras dans l'oxf moyen
 ref.df$Numéro=as.character(ref.df$Numéro)
 ref.df=ref.df[ref.df$Numéro%in%rownames(data),]
 
@@ -41,6 +40,7 @@ ref.df=ref.df[ref.df$Numéro%in%rownames(data),]
 data$label="?"
 data[as.character(ref.df$Numéro),"label"]=ref.df$Genre
 data$label2=substr(data$label,1,3) # abbreviation
+data=data[data$label!="Dichotomoceras",] # pas de Dichotomoceras dans l'oxf moyen
 
 # Personal identification (may be wrong !!)
 data["3","label"]="Otosphinctes (?)"
