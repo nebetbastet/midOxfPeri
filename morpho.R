@@ -64,6 +64,14 @@ col_label=c(`?` = "#95BBB6", `Otosphinctes (?)` = "#9041CC",
              )
 col_label2=col_label
 names(col_label2)=substr(names(col_label),1,3) 
+col_cl0=c( yellow = "#f3c300", purple = "#875692", 
+         orange = "#f38400", lightblue = "#a1caf1", red = "#be0032", buff = "#c2b280", 
+         gray = "#848482", green = "#008856", purplishpink = "#e68fac", 
+         blue = "#0067a5", yellowishpink = "#f99379", violet = "#604e97", 
+         orangeyellow = "#f6a600", purplishred = "#b3446c", greenishyellow = "#dcd300", 
+         reddishbrown = "#882d17", yellowgreen = "#8db600", yellowishbrown = "#654522", 
+         reddishorange = "#e25822", olivegreen = "#2b3d26")  %>% setNames(paste0("cl",1:20))
+col_cl0=c(col_cl0,'Ref'="gray10")
 
 # Selecting variables for PCA + scaling ####
 data_pca=data[,c("dm","WWI","WER","UWI","Shape","WHI","o")]
@@ -127,19 +135,23 @@ FUNcluster=function(x,k) {
 
 
 # Determiner le nombre optimal de clusters
-fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
-k=4
+index=(1:nrow(pca.coord))[!1:nrow(pca.coord)%in%ref]
+fviz_nbclust(pca.coord[index,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
+k=6
+col_cl=col_cl0[c(paste0("cl",1:k),"Ref")]
 
-clustering=(FUNcluster(pca.coord[,1:nb_axe],k=k))$cluster
-names(clustering)=rownames(pca.coord)
+clustering=(FUNcluster(pca.coord[index,1:nb_axe],k=k))$cluster
+names(clustering)=rownames(pca.coord)[index]
 annotation_col$clustering=paste0("cl",clustering[rownames(annotation_col)])
-pheatmap(t(pca.coord[,1:nb_axe]), 
+annotation_col$clustering[annotation_col$clustering=="clNA"]="Ref"
+pheatmap(t(pca.coord[index,1:nb_axe]), 
          cutree_cols = k,clustering_method="ward.D2",
          annotation_col=annotation_col,
-         annotation_color=list(label=col_label))
+         annotation_color=list(label=col_label, clustering=col_cl))
 
 
 data_plot$clustering=paste0("cl",clustering[data_plot$Row.names])
+data_plot$clustering[data_plot$clustering=="clNA"]="Ref"
 
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
@@ -176,7 +188,8 @@ unite=c("dm"="cm",
 
 for (v in names(Names_var)) {
   boxplot(data2[,v]~clustering[rownames(data_pca)],
-          main=Names_var[v], xlab="", ylab=unite[v])
+          main=Names_var[v], xlab="", ylab=unite[v],
+          col=col_cl)
   
 }
 
@@ -192,14 +205,15 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = clustering)) +
-  theme_bw() 
+  theme_bw() +
+  scale_color_manual(values=col_cl)
 
 
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+
   geom_text(hjust=0, vjust=0,aes(color = UWI)) +
   scale_color_gradient(low="blue",  high="red")+theme_bw() +
-  ggtitle("UWI")
+  ggtitle("UWI") 
 
 
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
@@ -221,5 +235,6 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = clustering)) +
-  theme_bw() 
+  theme_bw()  +
+  scale_color_manual(values=col_cl)
 
