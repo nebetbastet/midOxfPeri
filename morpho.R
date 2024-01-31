@@ -6,6 +6,9 @@ library(ggrepel)
 library(umap)
 library(pheatmap)
 
+
+
+
 # Loading data ####
 dirs=list.dirs() %>% .[.!="."]
 dirs=dirs[grepl("Ammonite",dirs)]
@@ -21,6 +24,29 @@ for (d in dirs) {
   data=rbind(data,t(data_D3))
   rownames(data)[nrow(data)]=N
 }
+data=data.frame(data)
+
+
+# Reference ammonites ####
+ref.df=openxlsx::read.xlsx("references.xlsx")
+ref.df$Numéro=as.character(ref.df$Numéro)
+ref.df=ref.df[ref.df$Numéro%in%rownames(data),]
+notParanideri=ref.df$Numéro[ref.df$Parandieri=="Non"]
+data=data[!rownames(data)%in%notParanideri,]
+ref.df=ref.df[ref.df$Parandieri=="Oui",]
+
+# harmoniser ####
+HC_JDS=ref.df[ref.df$Source%in%c("HC","JSD"),"Numéro"]
+data$ref="No"
+data[as.numeric(rownames(data))>=500,"ref"]="Yes"
+data[HC_JDS,"ref"]="No"
+
+data0=data
+x=as.matrix(data0[,c("dm", "wh", "uw", "e", "ww")])
+batch=data0$ref
+data[,c("dm", "wh", "uw", "e", "ww")]=t(limma::removeBatchEffect(t(x), batch=batch))
+boxplot(data0$e~data0$ref)
+boxplot(data$e~data$ref)
 
 # Computing ratios ####
 data=data.frame(data)
@@ -29,41 +55,35 @@ data$WWI=data$ww/data$wh #dépression
 data$WHI=data$wh/data$dm # Whorld height index 
 data$Shape = data$ww/data$dm # Shape
 data$WER =  (data$dm/(data$dm-data$wh))^2 #Whorl expansion rate 
-data$o=data$e/data$dm #ornementation
-
-# Reference ammonites ####
-ref.df=openxlsx::read.xlsx("references.xlsx")
-ref.df$Numéro=as.character(ref.df$Numéro)
-ref.df=ref.df[ref.df$Numéro%in%rownames(data),]
+data$o=data$e/data$dm #ornementations
 
 # Labeling ammonites ####
 data$label="?"
-data[as.character(ref.df$Numéro),"label"]=ref.df$Genre
-data$label2=substr(data$label,1,3) # abbreviation
-data=data[data$label!="Dichotomoceras",] # pas de Dichotomoceras dans l'oxf moyen
+data[as.character(ref.df$Numéro),"label"]=ref.df$Espèce_dim
+data$label2="?"
+data[as.character(ref.df$Numéro),"label2"]=ref.df$Name
+
 
 # Personal identification (may be wrong !!)
-data["3","label"]="Otosphinctes (?)"
-data["7","label"]="Otosphinctes (?)"
-data["8","label"]="Otosphinctes (?)"
-data["11","label"]="Otosphinctes (?)"
-data["13","label"]="Otosphinctes (?)"
-data["14","label"]="Otosphinctes (?)"
-data["19","label"]="Passendorferia birmensdorfense (?)"
-data["21","label"]="Otosphinctes (?)"
-data["35","label"]="Passendorferia birmensdorfense (?)"
+# data["1","label"]="Sub_Dic?"
+# data["2","label"]="Sub_Dic?"
+# data["16","label"]="Sub_Dic?"
+# data["3","label"]="Oto?"
+# data["7","label"]="Oto?"
+# data["8","label"]="Oto?"
+# data["11","label"]="Oto?"
+# data["13","label"]="Oto?"
+# data["14","label"]="Oto?"
+# data["19","label"]="Pass?"
+# data["21","label"]="Oto?"
+# data["35","label"]="Pass?"
+# data["23","label"]="Pass?"
+# data["48","label"]="Oto?"
+# data["5","label"]="Dic?"
+# data["10","label"]="Dic?"
 
 # Colors of labels ####
-col_label=c(`?` = "#95BBB6", `Otosphinctes (?)` = "#9041CC", 
-            `Passendorferia birmensdorfense (?)` = "#857028", 
-            Passendorferia =  "#f5d667",
-            Dichotomosphinctes = "#C4553E",
-            Subdiscosphinctes = "#4E4637", 
-           # Dichotomoceras = "#2ca836",
-            Otosphinctes =  "#615998"
-             )
-col_label2=col_label
-names(col_label2)=substr(names(col_label),1,3) 
+col_label=hues::iwanthue(n=length(unique(data$label))) %>% setNames(unique(data$label))
 col_cl0=c( yellow = "#f3c300", purple = "#875692", 
          orange = "#f38400", lightblue = "#a1caf1", red = "#be0032", buff = "#c2b280", 
          gray = "#848482", green = "#008856", purplishpink = "#e68fac", 
@@ -73,22 +93,26 @@ col_cl0=c( yellow = "#f3c300", purple = "#875692",
          reddishorange = "#e25822", olivegreen = "#2b3d26")  %>% setNames(paste0("cl",1:20))
 col_cl0=c(col_cl0,'Ref'="gray10")
 
-# Selecting variables for PCA + scaling ####
-data_pca=data[,c("dm","WWI","WER","UWI","Shape","WHI","o")]
-#data_pca=data[,c("WER","UWI","Shape","WHI")]
-#data_pca=data[,c("WWI","WER","UWI","Shape","WHI")]
-data_pca=scale(data_pca) %>% data.frame()
 
+
+
+# Selecting variables for PCA + scaling ####
+sel_var=c("dm","WWI","WER","UWI","Shape","WHI","o")
+data_pca=data[,sel_var]
+data_pca=scale(data_pca) %>% data.frame()
 
 # Heatmap  #####
 annotation_col=data[,"label",drop=FALSE]
-pheatmap(t(data_pca), cutree_cols = 5, cutree_rows = 4,
+pheatmap(t(data_pca), cutree_cols = 4, cutree_rows = 4,
          annotation_col=annotation_col,
          annotation_color=list(label=col_label))
 
 # PCA #####
 ref=which(as.numeric(rownames(data_pca))>=500) # identification of ref points
+mine=which(as.numeric(rownames(data_pca))<500)
 res.pca=PCA(data_pca,graph = FALSE,ind.sup = ref)
+res.pca=PCA(data_pca,graph = FALSE,ind.sup = mine)
+res.pca=PCA(data_pca,graph = FALSE)
 pc_var=cumsum(res.pca$eig[,2])
 nb_axe=min(which(pc_var>80))
 
@@ -100,18 +124,23 @@ data_plot=merge(pca.coord,data,by="row.names") %>%
   data.frame()
 data_plot$names=data_plot$Row.names
 data_plot$names[as.numeric(data_plot$Row.names)>=500]=data_plot$label2[as.numeric(data_plot$Row.names)>=500]
+rownames(data_plot)=data_plot$Row.names
 
 pheatmap(t(pca.coord),annotation_col=annotation_col,
          annotation_color=list(label=col_label))
 
-value="UWI"
-data_plot$value=data_plot[,value]
+
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+
-  geom_text(hjust=0, vjust=0,aes(color = value)) +
+  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
   scale_color_gradient(low="blue",  high="red")+theme_bw() +
-  ggtitle(value)
+  ggtitle("UWI")
 
+ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+
+  geom_text(hjust=0, vjust=0,aes(color = dm)) +
+  scale_color_gradient(low="blue",  high="red")+theme_bw() +
+  ggtitle("dm")
 
 
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
@@ -135,16 +164,15 @@ FUNcluster=function(x,k) {
 
 
 # Determiner le nombre optimal de clusters
-index=(1:nrow(pca.coord))[!1:nrow(pca.coord)%in%ref]
-fviz_nbclust(pca.coord[index,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
-k=6
+fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
+k=5
 col_cl=col_cl0[c(paste0("cl",1:k),"Ref")]
 
-clustering=(FUNcluster(pca.coord[index,1:nb_axe],k=k))$cluster
-names(clustering)=rownames(pca.coord)[index]
+clustering=(FUNcluster(pca.coord[,1:nb_axe],k=k))$cluster
+names(clustering)=rownames(pca.coord)
 annotation_col$clustering=paste0("cl",clustering[rownames(annotation_col)])
 annotation_col$clustering[annotation_col$clustering=="clNA"]="Ref"
-pheatmap(t(pca.coord[index,1:nb_axe]), 
+pheatmap(t(pca.coord[,1:nb_axe]), 
          cutree_cols = k,clustering_method="ward.D2",
          annotation_col=annotation_col,
          annotation_color=list(label=col_label, clustering=col_cl))
@@ -154,7 +182,7 @@ data_plot$clustering=paste0("cl",clustering[data_plot$Row.names])
 data_plot$clustering[data_plot$clustering=="clNA"]="Ref"
 
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+ 
+  scale_color_manual(values=col_cl) +
   geom_text(hjust=0, vjust=0,aes(color = clustering)) +
   theme_bw() 
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
@@ -162,15 +190,12 @@ ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
   geom_text(hjust=0, vjust=0,aes(color = label)) +
   scale_color_manual(values=col_label) +
   theme_bw() 
+ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = dm)) +
+  theme_bw() 
 
-# Median per cluster
-med=apply(data_pca, 2, FUN=function(x) {
-  medx=aggregate(x,by=list(clustering[rownames(data_pca)]),FUN=median)[,2] %>%
-    setNames(paste0("cl",1:k))
-  return(medx)
-})
-pheatmap(t(scale(med)))
-
+# Median per cluster ####
 data2=data
 data2$Involution=max(data2$UWI)-data2$UWI
 data2$densite=max(data2$o)-data2$o
@@ -179,12 +204,28 @@ Names_var=c("dm"="Taille de la coquille",
             "Shape"="Epaisseur de la coquille", 
             "WER"="Taux d'augmentation du diamètre de la coquille par tour",
             "densite"="Densité de la costulation")
-
 unite=c("dm"="cm", 
         "Involution"="1 - taille_ombilic/taille totale", 
         "Shape"="cm/cm", 
         "WER"="cm/cm",
         "densite"="cm/cm")
+
+
+med=apply(data_pca, 2, FUN=function(x) {
+  medx=aggregate(x,by=list(clustering[rownames(data_pca)]),FUN=median)[,2] %>%
+    setNames(paste0("cl",1:k))
+  return(medx)
+})
+annot_cl=paste0("cl",unique(clustering)) %>% setNames(paste0("cl",unique(clustering))) %>% data.frame()
+colnames(annot_cl)="cluster"
+pheatmap(t(scale(med)),
+         annotation_col=annot_cl,
+         annotation_colors = list(cluster=col_cl))
+
+
+
+# Boxplot ####
+
 
 for (v in names(Names_var)) {
   boxplot(data2[,v]~clustering[rownames(data_pca)],
@@ -198,6 +239,7 @@ res_umap=umap(pca.coord[,1:nb_axe])
 colnames(res_umap$layout)=paste0("UMAP",1:2)
 
 data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
+rownames(data_plot2)=data_plot2$Row.names
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
   geom_text(hjust=0, vjust=0,aes(color = label)) +
@@ -237,4 +279,140 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   geom_text(hjust=0, vjust=0,aes(color = clustering)) +
   theme_bw()  +
   scale_color_manual(values=col_cl)
+
+
+
+# Bootrapping ####
+pc=0.7
+R=500
+
+boot=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+for (r in 1:R) {
+  set.seed(r)
+  index_r=sample(rownames(pca.coord),round(pc*nrow(pca.coord)))
+  clustering_r=(FUNcluster(pca.coord[index_r,1:nb_axe],k=k))$cluster
+  boot_r=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+  colnames(boot_r)=rownames(boot_r)=rownames(pca.coord)
+  for (clr in clustering_r) {
+    ind_cl=index_r[clustering_r==clr]
+    boot_r[ind_cl,ind_cl]=1
+
+  }
+  boot=boot+boot_r
+ # print(max(boot))
+}
+colnames(boot)=rownames(boot)=rownames(pca.coord)
+nb_cl=apply(boot,1,max)
+boot2=boot/nb_cl
+diag(boot2)
+colnames(boot2)=rownames(boot2)=rownames(pca.coord)
+pheatmap(boot2, clustering_method="ward.D2")
+fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
+clustering_boot=paste0("cl",(FUNcluster(boot2,k=5))$cluster) %>% setNames(rownames(pca.coord))
+col_cl2=c(col_cl0[unique(clustering_boot)],Ref="gray10")
+pheatmap(boot2, clustering_method="ward.D2",
+         annotation_col=data.frame(clustering_boot),
+         annotation_colors = list(clustering_boot=col_cl2))
+data_plot2$clustering_boot=clustering_boot[data_plot2$Row.names]
+data_plot2$clustering_boot[is.na(data_plot2$clustering_boot)]="Ref"
+
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
+  theme_bw() + scale_color_gradientn(colors=c("blue","yellow","red"))
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
+  theme_bw() + 
+  scale_colour_stepsn(colors=c("blue","yellow","red"))
+
+
+  
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  geom_text(hjust=0, vjust=0,aes(color = dm)) +
+  theme_bw() + 
+    scale_colour_stepsn(colors=c("blue","yellow","red"))
+    
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = dm)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red"))
+
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = o)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+  
+  
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = Shape)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+  
+  
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = Dim.1)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+  
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = Dim.2)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+  
+
+  
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = label)) +
+  theme_bw()  +
+  scale_color_manual(values=col_label)
+
+
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = data_plot2$clustering_boot),size=4) +
+  theme_bw()  +
+  scale_color_manual(values=col_cl2) 
+
+data_plot2[data_plot2$label2=="PassBir_GYGI",]
+data_plot2["54",]
+data_plot2[data_plot2$label=="OtoCro",]
+
+
+
+
+rgl::plot3d(data_plot2$Dim.1,data_plot2$Dim.2,data_plot2$Dim.3,
+            col=col_cl2[(data_plot2$clustering_boot)],
+            size=10
+            )
+
+
+rgl::plot3d(data_plot2$UWI,data_plot2$dm,data_plot2$o,
+            col=col_cl2[(data_plot2$clustering_boot)],
+            size=10
+)
+
+
+# Organizing pictures in function of clusters ####
+unlink("Clusters_pictures",recursive = TRUE)
+dir.create("Clusters_pictures")
+for (cl in unique(clustering_boot)) {
+  dir.create(paste0("Clusters_pictures/",cl))
+  Number_cl=data_plot2[data_plot2$clustering_boot==cl,"Row.names"]
+  for (n in Number_cl) {
+    nb_0=3-nchar(n)
+    d=paste0("./Ammonite",paste0(rep(0,nb_0),collapse=""),n)
+    pics=c(list.files(d)[grep(".jpg",list.files(d))],
+           list.files(d)[grep(".png",list.files(d))])
+    To_vec=c()
+    for (i in 1:length(pics)) {
+      from=paste0(d,"/",pics[i])
+      
+      to=paste0(d,"/ammonite",paste0(rep(0,nb_0),collapse=""),n,letters[i],".jpg")
+      To_vec=c(To_vec,to)
+      file.rename(from, to)
+    }
+    tofiles=  gsub(paste0(d,"/"),paste0("Clusters_pictures/",cl,"/"),To_vec)
+    file.copy(To_vec,tofiles)
+    
+  }
+
+}
+
 
