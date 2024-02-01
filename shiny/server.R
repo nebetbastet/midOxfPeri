@@ -47,8 +47,11 @@ function(input, output) {
     nb_axe=min(which(pc_var>80))
     
     # Umap ####
-    res_umap=umap(pca.coord[,1:nb_axe])
-    umap.coord=res_umap$layout
+    #set.seed(0)
+    #res_umap0=umap(pca.coord[rownames(pca.coord)!="newData",1:nb_axe])
+    res_umap.new = predict(res_umap0, pca.coord[rownames(pca.coord)=="newData",1:nb_axe,drop=FALSE])
+    res_umap.new
+    umap.coord=rbind(res_umap0$layout,res_umap.new) %>% data.frame()
     colnames(umap.coord)=paste0("UMAP",1:2)
     
     # Plot
