@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(tidyverse)
+library(viridis)
 
 input=list()
 input$dm=10
@@ -71,7 +72,12 @@ function(input, output) {
       geom_text(hjust=0, vjust=0,aes(color = value)) +
       #scale_color_gradient(low="blue",  high="red") +
       ggtitle("UWI")+theme_bw()
+
+    if (is.numeric(data_plot()$value)) {
+      p <- p+scale_colour_viridis()
+    }
     
+        
     print(p)
     
   }, height=650)
