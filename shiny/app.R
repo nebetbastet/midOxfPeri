@@ -5,29 +5,42 @@ library(viridis)
 library(FactoMineR)
 library(umap)
 library(shinythemes)
+library(shinydashboard)
 options(shiny.maxRequestSize = 160*1024^2)
 
 dataset <- readRDS("data.RDS")
 res_umap0 <- readRDS("res_umap0.RDS")
+beta <- readRDS("beta.RDS")
 
 # ui ####
 ui <- fluidPage(
   theme = shinytheme("sandstone"),
-  titlePanel("Perisphinctidae de l'Oxfordien Moyen"),
+  dashboardHeader(
+    title= div(h3("Perisphinctidae de l'Oxfordien Moyen", style="margin: 0;"), 
+               h4('Zone à Transversarium, sous-zone à Parandieri', style="margin: 0;"))
+  ),
+ # titlePanel("Perisphinctidae de l'Oxfordien Moyen"),
   
   sidebarPanel(
     
-    numericInput("dm", "diamètre", 0, min = 0, max = 100),
-    numericInput("wh", "wh", 0, min = 0, max = 100),
-    numericInput("ww", "ww", 0, min = -100, max = 100),
-    numericInput("uw", "uw", 0, min = -100, max = 100),
-    numericInput("e", "e", 0, min = -100, max = 100),
+    numericInput("dm", "diamètre (dm)", 0, min = 0, max = 100),
+    numericInput("wh", "hauteur de la spire (wh)", 0, min = 0, max = 100),
+    numericInput("ww", "largeur de la spire (ww)", 0, min = -100, max = 100),
+    numericInput("uw", "diamètre de l'ombilic (uw)", 0, min = -100, max = 100),
+    numericInput("e", "écart entre les côtes", 0, min = -100, max = 100),
     
     selectInput('unit', 'Unité', c("cm","mm")),
     selectInput('method', 'Méthode', c("Mesure directe","Photographie")),
     
     selectInput('value', 'Que visualiser ?',
-                c("clustering","dm","WWI","WER","UWI","Shape","WHI","o"
+                c("Groupes de ressemblance"="clustering",
+                  "Diamètre (cm)"="dm",
+                  "Indice de largeur de la spire (ww/dm)"="WWI",
+                  "Taux d'expansion des spires"="WER",
+                  "Indice de Largeur Ombilical (uw/dm)"="UWI",
+                  "Epaisseur (ww/wh)"="Shape",
+                  "Indice de hauteur de la spire (wh/dm)"="WHI",
+                  "Densité de la costulation"="densite"
                 ))           
     
   ),
@@ -36,6 +49,17 @@ ui <- fluidPage(
     plotOutput('plot')
   )
 )
+
+
+input=list()
+input$dm=10
+input$wh=3
+input$uw=5
+input$e=0.2
+input$ww=2
+input$value="densite"
+input$unit="cm"
+input$method="Mesure directe"
 
 # server ####
 server <- function(input, output) {
@@ -58,6 +82,36 @@ server <- function(input, output) {
     newData$Shape = newData$ww/newData$dm # Shape
     newData$WER =  (newData$dm/(newData$dm-newData$wh))^2 #Whorl expansion rate 
     newData$o=newData$e/newData$dm #ornementations
+    newData$densite=newData$dm/newData$e
+    
+    dataset$densite=dataset$dm/dataset$e
+    
+    # Harmoniser
+    varToCorrect=rownames(beta)
+    x=as.matrix(newData[,varToCorrect])
+    
+    # checking sens 
+    # Dans le jeu de données de base, UWI est > chez les réf
+    # Donc si beta["UWI",] doit est negatif, batchx est positif pour Mesure directe
+    # if (beta["UWI",]<0) {
+      if (input$method=="Mesure directe") {
+        batchx =  1
+      } else {
+        batchx = - 1
+      }
+    # } else {
+    #   if (input$method=="Mesure directe") {
+    #     batchx =-  1
+    #   } else {
+    #     batchx =  1
+    #   }
+    # }
+    
+   
+    newData0=newData
+    newData[,varToCorrect]=t(as.matrix(t(newData0[,varToCorrect])) + beta %*% t( batchx))
+    newData0[,varToCorrect]
+    newData[,varToCorrect]
     
     
     # Selecting variables for PCA + scaling ####
@@ -83,24 +137,31 @@ server <- function(input, output) {
     
     # Plot
     data_plot=merge(umap.coord,dataset[,-which(colnames(dataset)%in%c("UMAP1","UMAP2"))],
-                    by="row.names", all=TRUE) %>%
-      data.frame()
-    rownames(data_plot)=data_plot$names=data_plot$Row.names
-    data_plot["newData",c("Row.names","label","label2")]=c("0","?","?")
-    data_plot$names[as.numeric(data_plot$Row.names)>=500]=data_plot$label2[as.numeric(data_plot$Row.names)>=500]
-    data_plot["newData",c("dm","WWI","WER","UWI","Shape","WHI","o")]=newData[,sel_var]
+                    by="row.names", all=TRUE) 
     
+
+    rownames(data_plot)=data_plot$names=data_plot$Row.names
+
     data_plot$clustering=dataset[rownames(data_plot),"clustering_boot"]
-    data_plot$value=data_plot[,input$value]
+    data_plot["newData",c("Row.names","label","label2","clustering","names")]=c("0","?","?","Ton ammonite",
+                                                                                "Ton ammonite")
+    data_plot$names[as.numeric(data_plot$Row.names)>=500]=data_plot$label2[as.numeric(data_plot$Row.names)>=500]
+    data_plot["newData",colnames(newData)]=newData[,colnames(newData)]
+    #data_plot$densite=max(data_plot$o)-data_plot$o
+
+    data_plot$value=data_plot[,input$value]   
     data_plot=data.frame(data_plot)
+      
     
   })
   
   output$plot <- renderPlot({
     
     col_cl=c( yellow = "#f3c300", purple = "#875692", 
-               orange = "#f38400", lightblue = "#a1caf1", red = "#be0032", buff = "#c2b280") 
+               orange = "#f38400", lightblue = "#a1caf1", red ="darkgreen", buff = "#c2b280") 
     names(col_cl)=paste0("cl",1:length(col_cl))
+    col_cl=c(col_cl,"Ton ammonite"="red")
+    
     
     p <- ggplot(data_plot(),
                 aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
@@ -109,7 +170,10 @@ server <- function(input, output) {
       ggtitle(input$value)+theme_bw()
     
     if (is.numeric(data_plot()$value)) {
-      p <- p+scale_colour_viridis()
+
+      p <- p+ #scale_colour_viridis()
+        scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous"))
+      
     }
     
     if (input$value=="clustering") {
