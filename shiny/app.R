@@ -98,6 +98,10 @@ server <- function(input, output) {
   
   output$plot <- renderPlot({
     
+    col_cl=c( yellow = "#f3c300", purple = "#875692", 
+               orange = "#f38400", lightblue = "#a1caf1", red = "#be0032", buff = "#c2b280") 
+    names(col_cl)=paste0("cl",1:length(col_cl))
+    
     p <- ggplot(data_plot(),
                 aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
       geom_text(hjust=0, vjust=0,aes(color = value)) +
@@ -106,6 +110,10 @@ server <- function(input, output) {
     
     if (is.numeric(data_plot()$value)) {
       p <- p+scale_colour_viridis()
+    }
+    
+    if (input$value=="clustering") {
+      p <- p+scale_colour_manual(values=col_cl)
     }
     
     
