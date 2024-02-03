@@ -6,6 +6,22 @@ library(ggrepel)
 library(umap)
 library(pheatmap)
 
+# functions to compute coeff ####
+coeffBatch=function(x,batch=batch) {
+  
+  design = matrix(1, nrow(x), 1)
+  
+  batch <- as.factor(batch)
+  contrasts(batch) <- contr.sum(levels(batch))
+  batch <- model.matrix(~batch)[, -1, drop = FALSE]
+  rownames( batch)=rownames(x)
+  
+  fit <- limma::lmFit(t(x), cbind(design, batch))
+  beta <- fit$coefficients[, -(1:ncol(design)), drop = FALSE]
+  beta[is.na(beta)] <- 0
+  return(beta)
+  
+}
 
 
 
@@ -35,19 +51,6 @@ notParanideri=ref.df$Numéro[ref.df$Parandieri=="Non"]
 data=data[!rownames(data)%in%notParanideri,]
 ref.df=ref.df[ref.df$Parandieri=="Oui",]
 
-# harmoniser ####
-HC_JDS=ref.df[ref.df$Source%in%c("HC","JSD"),"Numéro"]
-data$ref="No"
-data[as.numeric(rownames(data))>=500,"ref"]="Yes"
-data[HC_JDS,"ref"]="No"
-
-data0=data
-x=as.matrix(data0[,c("dm", "wh", "uw", "e", "ww")])
-batch=data0$ref
-data[,c("dm", "wh", "uw", "e", "ww")]=t(limma::removeBatchEffect(t(x), batch=batch))
-boxplot(data0$e~data0$ref)
-boxplot(data$e~data$ref)
-
 # Computing ratios ####
 data=data.frame(data)
 data$UWI=data$uw/data$dm #evolution
@@ -56,6 +59,47 @@ data$WHI=data$wh/data$dm # Whorld height index
 data$Shape = data$ww/data$dm # Shape
 data$WER =  (data$dm/(data$dm-data$wh))^2 #Whorl expansion rate 
 data$o=data$e/data$dm #ornementations
+
+
+
+# harmoniser ####
+HC_JDS=ref.df[ref.df$Source%in%c("HC","JSD"),"Numéro"]
+data$DirectMeasure="No"
+data[as.numeric(rownames(data))>=500,"DirectMeasure"]="Yes"
+data[HC_JDS,"DirectMeasure"]="No"
+
+varToCorrect=c("UWI","WWI","WHI","Shape","WER")
+varToCorrect=c("WWI","Shape")
+data0=data
+x=as.matrix(data0[,varToCorrect])
+batch=data0$DirectMeasure
+data[,varToCorrect]=t(limma::removeBatchEffect(t(x), batch=batch))
+
+
+beta=coeffBatch(x,batch=batch)
+
+boxplot(data0$UWI~data0$DirectMeasure)
+boxplot(data$UWI~data$DirectMeasure)
+
+boxplot(data0$o~data0$DirectMeasure)
+boxplot(data$o~data$DirectMeasure)
+
+#test
+data2=data0
+x=as.matrix(data2[,varToCorrect])
+batch2 <- as.factor(batch)
+contrasts(batch2) <- contr.sum(levels(batch2))
+batch2 <- model.matrix(~batch2)[, -1, drop = FALSE]
+rownames( batch2)=rownames(x)
+
+data2[,varToCorrect]=t(as.matrix(t(x)) - beta %*% t(batch2))
+boxplot(data2$UWI~data2$DirectMeasure)
+boxplot(data0$UWI~data0$DirectMeasure)
+#c'est bon !
+saveRDS(beta,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/beta.RDS")
+
+
+
 
 # Labeling ammonites ####
 data$label="?"
@@ -110,8 +154,6 @@ pheatmap(t(data_pca), cutree_cols = 4, cutree_rows = 4,
 # PCA #####
 ref=which(as.numeric(rownames(data_pca))>=500) # identification of ref points
 mine=which(as.numeric(rownames(data_pca))<500)
-res.pca=PCA(data_pca,graph = FALSE,ind.sup = ref)
-res.pca=PCA(data_pca,graph = FALSE,ind.sup = mine)
 res.pca=PCA(data_pca,graph = FALSE)
 pc_var=cumsum(res.pca$eig[,2])
 nb_axe=min(which(pc_var>80))
@@ -129,6 +171,14 @@ rownames(data_plot)=data_plot$Row.names
 pheatmap(t(pca.coord),annotation_col=annotation_col,
          annotation_color=list(label=col_label))
 
+data_ref=data_plot[data_plot$label2!="?",]
+rownames(ref.df)=ref.df$Numéro
+data_ref$Genre=ref.df[rownames(data_ref),"Genre"]
+cols=as.numeric(as.factor(data_ref$Genre))
+h=data_ref$Dim.1 %>% setNames(make.names(data_ref$label,unique=TRUE))
+barplot(sort(h), col=cols[order(h)], las=2)
+h=data_ref$Dim.2 %>% setNames(make.names(data_ref$label,unique=TRUE))
+barplot(sort(h), col=cols[order(h)], las=2)
 
 ggplot(data_plot,aes(x=Dim.1,y=Dim.2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+
@@ -224,15 +274,6 @@ pheatmap(t(scale(med)),
 
 
 
-# Boxplot ####
-
-
-for (v in names(Names_var)) {
-  boxplot(data2[,v]~clustering[rownames(data_pca)],
-          main=Names_var[v], xlab="", ylab=unite[v],
-          col=col_cl)
-  
-}
 
 # Umap ####
 res_umap=umap(pca.coord[,1:nb_axe])
@@ -240,46 +281,6 @@ colnames(res_umap$layout)=paste0("UMAP",1:2)
 
 data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
 rownames(data_plot2)=data_plot2$Row.names
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+ 
-  geom_text(hjust=0, vjust=0,aes(color = label)) +
-  scale_color_manual(values=col_label)+theme_bw() 
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+ 
-  geom_text(hjust=0, vjust=0,aes(color = clustering)) +
-  theme_bw() +
-  scale_color_manual(values=col_cl)
-
-
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+
-  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
-  scale_color_gradient(low="blue",  high="red")+theme_bw() +
-  ggtitle("UWI") 
-
-
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+
-  geom_text(hjust=0, vjust=0,aes(color = WER)) +
-  scale_color_gradient(low="blue",  high="red")+theme_bw() +
-  ggtitle("WER")
-
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+
-  geom_text(hjust=0, vjust=0,aes(color = dm)) +
-  scale_color_gradient(low="blue",  high="red")+theme_bw() +
-  ggtitle("dm")
-
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+ 
-  geom_text(hjust=0, vjust=0,aes(color = label)) +
-  scale_color_manual(values=col_label)+theme_bw() 
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  #geom_point(aes(color = value,size=5))+ 
-  geom_text(hjust=0, vjust=0,aes(color = clustering)) +
-  theme_bw()  +
-  scale_color_manual(values=col_cl)
-
 
 
 # Bootrapping ####
@@ -308,38 +309,47 @@ diag(boot2)
 colnames(boot2)=rownames(boot2)=rownames(pca.coord)
 pheatmap(boot2, clustering_method="ward.D2")
 fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
-clustering_boot=paste0("cl",(FUNcluster(boot2,k=5))$cluster) %>% setNames(rownames(pca.coord))
-col_cl2=c(col_cl0[unique(clustering_boot)],Ref="gray10")
+clustering_boot=paste0("cl",(FUNcluster(boot2,k=6))$cluster) %>% setNames(rownames(pca.coord))
+col_cl2=col_cl0[unique(clustering_boot)]
 pheatmap(boot2, clustering_method="ward.D2",
          annotation_col=data.frame(clustering_boot),
          annotation_colors = list(clustering_boot=col_cl2))
 data_plot2$clustering_boot=clustering_boot[data_plot2$Row.names]
 data_plot2$clustering_boot[is.na(data_plot2$clustering_boot)]="Ref"
 
+ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #geom_point(aes(color = value,size=5))+ 
+  geom_text(hjust=0, vjust=0,aes(color = data_plot2$clustering_boot),size=4) +
+  theme_bw()  +
+  scale_color_manual(values=col_cl2) 
+
 
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   geom_text(hjust=0, vjust=0,aes(color = UWI)) +
   theme_bw() + scale_color_gradientn(colors=c("blue","yellow","red"))
 
-ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  geom_text(hjust=0, vjust=0,aes(color = UWI)) +
-  theme_bw() + 
-  scale_colour_stepsn(colors=c("blue","yellow","red"))
+# ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+#   geom_text(hjust=0, vjust=0,aes(color = UWI)) +
+#   theme_bw() + 
+#   scale_colour_stepsn(colors=c("blue","yellow","red"))
 
-
-  
-  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-  geom_text(hjust=0, vjust=0,aes(color = dm)) +
-  theme_bw() + 
-    scale_colour_stepsn(colors=c("blue","yellow","red"))
+  # ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  # geom_text(hjust=0, vjust=0,aes(color = dm)) +
+  # theme_bw() + 
+  #   scale_colour_stepsn(colors=c("blue","yellow","red"))
     
   ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
     geom_text(hjust=0, vjust=0,aes(color = dm)) +
     theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red"))
 
+  # ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  #   geom_text(hjust=0, vjust=0,aes(color = o)) +
+  #   theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+  
+  
   ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
     geom_text(hjust=0, vjust=0,aes(color = o)) +
-    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red"))
   
   
   ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
@@ -355,7 +365,9 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
     geom_text(hjust=0, vjust=0,aes(color = Dim.2)) +
     theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
   
-
+  ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+    geom_text(hjust=0, vjust=0,aes(color = Dim.3)) +
+    theme_bw() +   scale_color_gradientn(colors=c("blue","yellow","red")) 
   
 ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   #geom_point(aes(color = value,size=5))+ 
@@ -370,10 +382,13 @@ ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
   theme_bw()  +
   scale_color_manual(values=col_cl2) 
 
-data_plot2[data_plot2$label2=="PassBir_GYGI",]
-data_plot2["54",]
-data_plot2[data_plot2$label=="OtoCro",]
 
+ggplot(data_plot2,
+       aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+  geom_point(aes(color = dm)) +
+  #geom_text(hjust=0, vjust=0,aes(color = value)) +
+  theme_bw()+ 
+  geom_text_repel(data=data_plot2[rownames(data_ref),],aes(label=label))
 
 
 
@@ -387,6 +402,47 @@ rgl::plot3d(data_plot2$UWI,data_plot2$dm,data_plot2$o,
             col=col_cl2[(data_plot2$clustering_boot)],
             size=10
 )
+
+
+
+
+med=apply(data_pca, 2, FUN=function(x) {
+  k=length(unique(clustering_boot[rownames(data_pca)[cond]]))
+  medx=aggregate(x,by=list(clustering_boot[rownames(data_pca)]),FUN=median)[,2] %>%
+    setNames(paste0("cl",1:k))
+  return(medx)
+})
+annot_cl=unique(clustering_boot) %>% 
+  setNames(paste0(unique(clustering_boot))) %>% data.frame()
+colnames(annot_cl)="cluster"
+pheatmap(t(scale(med)),
+         annotation_col=annot_cl,
+         annotation_colors = list(cluster=col_cl2))
+
+cond=(1:nrow(data_pca))[!1:nrow(data_pca)%in%ref]
+med2=apply(data_pca[cond,], 2, FUN=function(x) {
+  k=length(unique(clustering_boot[rownames(data_pca)[cond]]))
+  medx=aggregate(x,by=list(clustering_boot[rownames(data_pca)[cond]]),FUN=median)[,2] %>%
+    setNames(paste0("cl",1:k))
+  return(medx)
+})
+annot_cl=unique(clustering_boot) %>% 
+  setNames(paste0(unique(clustering_boot))) %>% data.frame()
+colnames(annot_cl)="cluster"
+pheatmap(t(scale(med2)),
+         annotation_col=annot_cl,
+         annotation_colors = list(cluster=col_cl2))
+
+
+# Boxplot ####
+
+
+for (v in names(Names_var)) {
+  boxplot(data2[,v]~clustering_boot[rownames(data_pca)],
+          main=Names_var[v], xlab="", ylab=unite[v],
+          col=col_cl)
+  
+}
 
 
 # Organizing pictures in function of clusters ####
@@ -416,3 +472,49 @@ for (cl in unique(clustering_boot)) {
 }
 
 
+# 
+# # Bootrapping with ref ####
+# pc=0.7
+# R=500
+# boot=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+# for (r in 1:R) {
+#   index_r=sample(rownames(pca.coord),round(pc*nrow(pca.coord)))
+#   clustering_r=(FUNcluster(pca.coord[index_r,1:nb_axe],k=k))$cluster
+#   boot_r=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+#   colnames(boot_r)=rownames(boot_r)=rownames(pca.coord)
+#   for (clr in clustering_r) {
+#     ind_cl=index_r[clustering_r==clr]
+#     boot_r[ind_cl,ind_cl]=1
+#     
+#   }
+#   boot=boot+boot_r
+#   print(max(boot))
+# }
+# colnames(boot)=rownames(boot)=rownames(pca.coord)
+# nb_cl=apply(boot,1,max)
+# boot2=boot/nb_cl
+# diag(boot2)
+# colnames(boot2)=rownames(boot2)=rownames(pca.coord[,1:nb_axe])
+# pheatmap(boot2, clustering_method="ward.D2")
+# fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
+# clustering_boot=paste0("cl",(FUNcluster(boot2,k=10))$cluster) %>% setNames(rownames(pca.coord))
+# col_cl2=c(col_cl0[unique(clustering_boot)],Ref="gray10")
+# pheatmap(boot2, clustering_method="ward.D2",
+#          annotation_col=data.frame(clustering_boot),
+#          annotation_colors = list(clustering_boot=col_cl2))
+# data_plot2$clustering_boot=clustering_boot[data_plot2$Row.names]
+# data_plot2$clustering_boot[is.na(data_plot2$clustering_boot)]="Ref"
+# ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+#   #geom_point(aes(color = value,size=5))+ 
+#   geom_text(hjust=0, vjust=0,aes(color = clustering_boot)) +
+#   theme_bw()  +
+#   scale_color_manual(values=col_cl2)
+# ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
+#   #geom_point(aes(color = value,size=5))+ 
+#   geom_text(hjust=0, vjust=0,aes(color = label)) +
+#   theme_bw()  +
+#   scale_color_manual(values=col_label)
+
+# Saving files
+saveRDS(data_plot2,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/data.RDS")
+saveRDS(res_umap,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/res_umap0.RDS")
