@@ -1,0 +1,32 @@
+# Titre du site
+title: Mon site web
+
+# Description du site
+description: Un site web simple pour mon projet
+
+# URL du site
+url: https://monsiteweb.com
+
+# Langue du site
+lang: fr
+
+# Thème
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+
+# Options de génération
+markdown: kramdown
+
+# Options de pagination
+paginate: 10
+
+# Options de Disqus
+disqus:
+  shortname: monsiteweb
+
+# Options de Google Analytics
+google_analytics:
+  tracking_id: UA-XXXXXXXX-X
