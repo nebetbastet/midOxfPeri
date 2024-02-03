@@ -1,6 +1,6 @@
 # Analyse de données biométriques de Perisphinctidae de l'Oxfordien Moyen
 
-Site web : https://github.com/nebetbastet/midOxfPeri
+Site web : https://github.io/nebetbastet/midOxfPeri
 
 Application shiny : https://nebetbastet.shinyapps.io/midOxfPeri/
 
