@@ -35,11 +35,11 @@ ui <- fluidPage(
     selectInput('value', 'Que visualiser ?',
                 c("Groupes de ressemblance"="clustering",
                   "Diamètre (cm)"="dm",
-                  "Indice de largeur de la spire (ww/dm)"="WWI",
-                  "Taux d'expansion des spires"="WER",
-                  "Indice de Largeur Ombilical (uw/dm)"="UWI",
+                  "Indice de largeur de la spire (WWI = ww/dm)"="WWI",
+                  "Taux d'expansion des spires (WER)"="WER",
+                  "Indice de Largeur Ombilical (UWI = uw/dm)"="UWI",
                   "Epaisseur (ww/wh)"="Shape",
-                  "Indice de hauteur de la spire (wh/dm)"="WHI",
+                  "Indice de hauteur de la spire (WHI = wh/dm)"="WHI",
                   "Densité de la costulation"="densite"
                 ))           
     
@@ -143,7 +143,7 @@ server <- function(input, output) {
     rownames(data_plot)=data_plot$names=data_plot$Row.names
 
     data_plot$clustering=dataset[rownames(data_plot),"clustering_boot"]
-    data_plot["newData",c("Row.names","label","label2","clustering","names")]=c("0","?","?","Ton ammonite",
+    data_plot["newData",c("Row.names","label","label2","clustering","names")]=c("0","Ton ammonite","?","Ton ammonite",
                                                                                 "Ton ammonite")
     data_plot$names[as.numeric(data_plot$Row.names)>=500]=data_plot$label2[as.numeric(data_plot$Row.names)>=500]
     data_plot["newData",colnames(newData)]=newData[,colnames(newData)]
@@ -163,11 +163,14 @@ server <- function(input, output) {
     col_cl=c(col_cl,"Ton ammonite"="red")
     
     
+    
     p <- ggplot(data_plot(),
                 aes(x=UMAP1,y=UMAP2,label=names,size=5)) +
-      geom_text(hjust=0, vjust=0,aes(color = value)) +
-      #scale_color_gradient(low="blue",  high="red") +
-      ggtitle(input$value)+theme_bw()
+      geom_point(aes(color = value)) +
+      #geom_text(hjust=0, vjust=0,aes(color = value)) +
+      ggtitle(input$value)+theme_bw()+ 
+      geom_text_repel(data=data_plot()[data_plot()$label!="?",],
+                      aes(label=label,color = value))
     
     if (is.numeric(data_plot()$value)) {
 
