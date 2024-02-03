@@ -169,7 +169,7 @@ server <- function(input, output) {
       geom_point(aes(color = value)) +
       #geom_text(hjust=0, vjust=0,aes(color = value)) +
       ggtitle(input$value)+theme_bw()+ 
-      geom_text_repel(data=data_plot()[data_plot()$label!="?",],
+      ggrepel::geom_text_repel(data=data_plot()[data_plot()$label!="?",],
                       aes(label=label,color = value))
     
     if (is.numeric(data_plot()$value)) {
