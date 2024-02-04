@@ -1,5 +1,5 @@
 ---
-title: "Analyse de données biométriques de *Perisphinctidae* de l'Oxfordien Moyen"
+title: "Décoder mes ammonites avec l'analyse des données"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document:
@@ -85,9 +85,19 @@ coeffBatch=function(x,batch=batch) {
 
 ```
 
-Ce projet a pour objectif de classer des ammonites de la famille des Perisphinctidae, de l’Oxfordien Moyen, afin d’obtenir des groupes d’ammonites cohérents.
 
-La motivation derrière ce projet est de pouvoir classer ma propre collection de Perisphinctidae du Poitou. En raison des difficultés que je rencontre dans l'identification de ces ammonites, j’ai décidé de mesurer plusieurs caractères et de laisser les algorithmes les classer pour moi, sur la base de ces caractères.
+J'adore les fossiles, et plus particulièrement les ammonites. J'en ai ramassé des centaines, notamment dans le Poitou.
+J'aime bien les examiner, les nettoyer et essayer de les identifier (au moins au niveau du genre ou de la famille).
+Hélas ! Une famille d'ammonites, les *Perisphinctidae* me font des noeuds au cerveau. Non seulement je n'arrive pas à les identifier, mais je n'arrive même pas à les trier en fonction de leur ressemblant. Toutes les formes intermédiaires semblent exister... Et cela m'a généré beaucoup de frustration.
+
+J'ai décidé récemment de prendre le taureau par les cornes et d'employer les grands moyens : je mesurerai différents caractères morphologiques des coquilles de mes ammonites (taille, épaisseur, etc.) et je demanderai aux mathématiques et aux statistiques de créer des groupes d'ammonites cohérents.
+
+Cela permettra déjà de répondre à un premier objectif (strictement personnel) : classer ma collection et pouvoir mieux ranger mes tiroirs.
+
+Mais j'ai l'intention d'aller plus loin : comparer mes ammonites à des ammonites identifiées et dont je peux obtenir les mêmes données morphologiques que pour les miennes. Cela permettra d'avoir des pistes pour l'identification (l'identification des  *Perisphinctidae* étant **extrêmement** complexe, je ne préfère pas trop m'avancer là-dessus).
+
+Enfin, ce projet se veut utile à d'autres collectionneurs et collectionneuses. Je vous proposerai une application shiny permettant de comparer vos ammonites aux miennes, et ainsi d'avoir vous-mêmes des pistes pour l'identification.
+** Attention ** : cette comparaison n'est pertinente que si vos ammonites proviennent du même référentiel que le mien, à savoir des *Perisphinctidae* de petite taille (pas plus de 12 cm) et proviennent du même niveau que moi : Oxfordien moyen, zone à *Transversarium*, sous-zone à *Parandieri*. Si vos ammonites proviennent d'un niveau proche (par exemple, sous-zone à *Luciaeformis*), je pense qu'une comparaison peut peut-être rester pertinent dans une certaine mesure.
 
 
 # Matériel
@@ -285,7 +295,7 @@ FUNcluster=function(x,k) {
 
 # Determiner le nombre optimal de clusters
 fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
-k=5
+k=6
 # Bootrapping ####
 pc=0.7
 R=500
@@ -311,7 +321,7 @@ boot2=boot/nb_cl
 colnames(boot2)=rownames(boot2)=rownames(pca.coord)
 pheatmap(boot2, clustering_method="ward.D2")
 fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
-clustering_boot=paste0("cl",(FUNcluster(boot2,k=5))$cluster) %>% setNames(rownames(pca.coord))
+clustering_boot=paste0("cl",(FUNcluster(boot2,k=6))$cluster) %>% setNames(rownames(pca.coord))
 col_cl2=col_cl0[unique(clustering_boot)]
 
 # Umap ####
@@ -339,13 +349,13 @@ L'analyse n'a porté que sur les variables suivantes :
 + WHI
 + o
 
-Je ne souhaite pas rentrer dans le détail de mon analyse car ce document est adressé à un grand public. Le code R est disponible en cliquant sur les "Show" ci-dessus.
+Je ne souhaite pas rentrer dans le détail de mon analyse car ce document est adressé à un grand public. Si vous voulez en savoir plus, le code R est disponible en cliquant sur les "Show" ci-dessus.
 
-L'idée de l'analyse est la suivante : identifier des groupes d'ammonites se ressemblant et créer un graphique résumant les caractéristiques de toutes les ammonites. Le graphique se nomme une UMAP, chaque point représente une ammonite et plus ces ammonites sont proches, plus elles se ressemblent. Plus elles sont éloignées, plus elles sont différentes.
+L'idée de l'analyse est la suivante : identifier des groupes d'ammonites se ressemblant et créer un graphique résumant les caractéristiques de toutes les ammonites. Le graphique se nomme une UMAP, chaque point représente une ammonite et plus ces ammonites sont proches, plus elles se ressemblent. Au contraire, plus elles sont éloignées, plus elles sont différentes.
 
 # Résultats
 
-La UMAP résumant les données est présentée ci-dessous. Les couleurs représent les cinq groupes de ressemblance qui ont été identfiés.
+La UMAP résumant les données est présentée ci-dessous. Les couleurs représent les six clusters (=groupes de ressemblance) qui ont été identfiés. 
 
 ```{r umap clusters,  include=TRUE}
 
@@ -362,6 +372,86 @@ print(p)
 
 
 ```
+Regardons maintenant le diamètre des ammonites
+
+```{r umap dm,  include=TRUE}
+
+
+    p <- ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names)) +
+      geom_point(aes(color = dm), size=3) + 
+      ggtitle("Groupes")+theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = dm)) +
+      scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous"))
+
+print(p)
+    
+
+
+```
+
+On constate que les clusters <span style="color: #f3c300;">cl1</span>, <span style="color: #f38400;">cl3</span> et <span style="color: #c2b280;">cl6</span> correspondent plutôt à des ammonites de grande taille, alors que les clusters <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #darkgreen;">cl5</span> représentent des ammonites de petite taille.
+
+```{r table,  include=TRUE}
+
+data_ref=data_plot2[data_plot2$label2!="?",]
+rownames(ref.df)=ref.df$Numéro
+ref.df2=  ref.df[rownames(ref.df)%in%rownames(data_ref)&!is.na(ref.df$Genre),]
+ref.df2$clustering_boot=data_plot2[rownames(ref.df2),"clustering_boot"]
+
+
+X=table(ref.df2$clustering_boot,ref.df2$Genre)
+
+
+
+```
+
+Nous constatons qu'aucune ammonite "référence" ne se trouve dans les groupes de petites ammonites. Laissons ces groupes de côté et concentrons nous sur les grandes ammonites (<span style="color: #f3c300;">cl1</span>, <span style="color: #f38400;">cl3</span> et <span style="color: #c2b280;">cl6</span>).
+
+Sur la UMAP, ces clusters <span style="color: #f3c300;">cl1</span>, <span style="color: #f38400;">cl3</span> et <span style="color: #c2b280;">cl6</span> ne semblent pas vraiment constituer des groupes clairement distincts, mais semblent plutôt représenter une sorte de continuum. Cela semble surtout vrai pour les <span style="color: #f3c300;">cl1</span> et <span style="color: #f38400;">cl3</span>. 
+
+Tous les *Otosphinctes* et *Passendorferia* se trouvent dans le cl6. Le cl1 ne comprend, parmi les ammonites références, que deux *Subdoscosphinctes*. Toutes les dichotomosphinctes se trouvent dans le cl3, mais ce cluster comprend également des Subdiscosphinctes et le seul Sequeirosia du jeu de données.
+Cela suggère qu'il est probable que mes ammonites du cl6 appartiennent aux genres *Otosphinctes* et *Passendorferia*. Quant aux ammonites des clusters cl1 et cl3, on peut davantage s'orienter vers les genre *Sequeirosia*, *Dichotomosphinctes* ou  *Subdichotomosphinctes*, en privilégiant l'hypothèse "*Subdichotomosphinctes*" pour le cl1.
+
+Examinons désomrais l'indice largeur ombilicale (UWI) :
+
+```{r umap UWI,  include=TRUE}
+
+
+    p <- ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names)) +
+      geom_point(aes(color = UWI), size=3) + 
+      ggtitle("Groupes")+theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = UWI)) +
+      scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous"))
+
+print(p)
+    
+
+
+```
+
+Concentrons nous toujours sur les grandes ammonites. On constate que plus une ammonite est évolute, plus elle est située à gauche du graphique, et plus elle est involute, plus elle est située à droite. Cela correspond aux descriptions que l'on trouve dans la littérature : les *Otosphinctes* et *Passendorferia* sont décrites comme des espèces évolutes, *Sequeirosia* comme légèrement plus involutes que *Passendorferia*, *Dichotomosphinctes* comme étant "plutôt évolute" et *Subdichotomosphinctes* comme étant "involute". 
+On constate que le caractère "evolute"/"involute" est vraiment continu : il ne semble pas y avoir de seuil franc, surtout entre les cl1 et cl3.
+
+Concentrons nous désormais sur les clusters de petites ammonites : <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #darkgreen;">cl5</span>. Il est intéressant de remarquer, que ces petites ammonites présentent le même "motif" que les grandes : les plus évolutes sont situés à gauche, les plus involutes à droite. Il est à noter que le cl5 se distingue par une épaisseur inhabituelle comme le montre le graphique ci-dessous: 
+
+```{r umap Shape,  include=TRUE}
+
+
+    p <- ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names)) +
+      geom_point(aes(color = Shape), size=3) + 
+      ggtitle("Epaisseur rapportée au diamètre")+theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = Shape)) +
+      scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous"))
+
+print(p)
+    
+
+
+```
+Mon hypothèse pour l'instant est que les clusters <span style="color: #darkgreen;">cl5</span>, <span style="color: #875692;">cl2</span> et <span style="color: #a1caf1;">cl4</span>  sont plus ou moins les reflets des clusters <span style="color: #c2b280;">cl6</span>, <span style="color: #f38400;">cl3</span> et <span style="color: #f3c300;">cl1</span> et représentent leurs formes juvéniles.
 
 
 # Conclusion
