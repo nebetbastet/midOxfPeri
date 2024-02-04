@@ -1,0 +1,381 @@
+---
+title: "Analyse de données biométriques de *Perisphinctidae* de l'Oxfordien Moyen"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+    highlight: tango
+---
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 16px;
+  }
+td {  /* Table  */
+  font-size: 14px;
+}
+h1.title {
+  font-size: 60px;
+  color: Tomato;
+}
+h1 { /* Header 1 */
+  font-size: 28px;
+  color: SteelBlue;
+}
+h2 { /* Header 2 */
+    font-size: 22px;
+  color: SteelBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  color: SteelBlue;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+
+
+```{r global_options}
+library(knitr)
+
+knitr::opts_chunk$set(fig.align="center",eval.after="fig.cap",
+                      fig.width=7,fig.height=4,
+                      echo=TRUE, warning=FALSE, message=FALSE,
+                      cache.lazy = FALSE,results="hide")
+```
+
+```{r package}
+
+setwd("C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2")
+library(dplyr)
+library(FactoMineR)
+library(factoextra)
+library(ggrepel)
+library(umap)
+library(pheatmap)
+library(kableExtra)
+
+# functions to compute coeff ####
+coeffBatch=function(x,batch=batch) {
+  
+  design = matrix(1, nrow(x), 1)
+  
+  batch <- as.factor(batch)
+  contrasts(batch) <- contr.sum(levels(batch))
+  batch <- model.matrix(~batch)[, -1, drop = FALSE]
+  rownames( batch)=rownames(x)
+  
+  fit <- limma::lmFit(t(x), cbind(design, batch))
+  beta <- fit$coefficients[, -(1:ncol(design)), drop = FALSE]
+  beta[is.na(beta)] <- 0
+  return(beta)
+  
+}
+
+
+```
+
+Ce projet a pour objectif de classer des ammonites de la famille des Perisphinctidae, de l’Oxfordien Moyen, afin d’obtenir des groupes d’ammonites cohérents.
+
+La motivation derrière ce projet est de pouvoir classer ma propre collection de Perisphinctidae du Poitou. En raison des difficultés que je rencontre dans l'identification de ces ammonites, j’ai décidé de mesurer plusieurs caractères et de laisser les algorithmes les classer pour moi, sur la base de ces caractères.
+
+
+# Matériel
+
+```{r Loading and formatting data}
+# Loading data ####
+dirs=list.dirs() %>% .[.!="."]
+dirs=dirs[grepl("Ammonite",dirs)]
+
+data=c()
+for (d in dirs) {
+  N=gsub("./Ammonite","",d) %>% as.numeric()
+  data_D=read.csv(paste0(d,"/ammonite",gsub("./Ammonite","",d),".csv"))
+  rownames(data_D)=c("dm","wh","uw","e")
+  data_D2=read.csv(paste0(d,"/ammonite",gsub("./Ammonite","",d),"ww.csv"))
+  rownames(data_D2)="ww"
+  data_D3=rbind(data_D[,6,drop=FALSE],data_D2[,6,drop=FALSE]) %>% data.frame()
+  data=rbind(data,t(data_D3))
+  rownames(data)[nrow(data)]=N
+}
+data=data.frame(data, check.names=FALSE)
+
+
+# Reference ammonites ####
+ref.df=openxlsx::read.xlsx("references.xlsx")
+ref.df$Numéro=as.character(ref.df$Numéro)
+rownames(ref.df)=ref.df$Numéro
+ref.df=ref.df[ref.df$Numéro%in%rownames(data),]
+notParanideri=ref.df$Numéro[ref.df$Parandieri=="Non"]
+data=data[!rownames(data)%in%notParanideri,]
+ref.df=ref.df[ref.df$Parandieri=="Oui",]
+data$ref="No"
+data$ref[rownames(data)%in%ref.df$Numéro]="Yes"
+table_ref=table(data$ref)
+
+# Computing ratios ####
+data=data.frame(data)
+data$UWI=data$uw/data$dm #evolution
+data$WWI=data$ww/data$wh #dépression
+data$WHI=data$wh/data$dm # Whorld height index 
+data$Shape = data$ww/data$dm # Shape
+data$WER =  (data$dm/(data$dm-data$wh))^2 #Whorl expansion rate 
+data$o=data$e/data$dm #ornementations
+```
+
+Cette analyse a été réalisée sur des *Perisphinctidae* de ma collection (`r table_ref[1]` individus) et sur des *Perisphinctidae* décrites dans la littérature scientifique (`r table_ref[2]` individus).
+Toutes mes *Perisphinctidae* sont originaires d'un seul champs situé dans la Vienne (86). Elles proviennent de la zone à *Transversarium*, sous-zone à *Parandieri*.
+Mes ammonites ont un diamètre allant de `r min(data$dm[data$ref=="No"])` à `r max(data$dm[data$ref=="No"])` cm. Il n'y a pas de forme macroconque. En révanche, des juvéniles sont présents dans l'échantillon.
+
+# Méthode
+
+## Photographies
+
+Pour pouvoir prendre des mesures sur mes ammonites, je les photographie de deux façons : de face et sur le côté, à chaque fois avec une échelle.
+Pour la photo sur le côté, je me situe "perpendiculairement" à la dernière spire (cf. la position de l'oeil sur l'image ci-dessous)
+![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/613d0d4a-aeb2-4269-b317-dbd7c5cd6da4)
+
+Concrètement, pour chacune des ammonites que je souhaite mesures, j'obtiens ce genre d'image :
+
+<img src="https://github.com/nebetbastet/midOxfPeri/assets/6839261/77500f4e-d198-40d7-9295-72075a4f5041" height="250"/>
+<img src="https://github.com/nebetbastet/midOxfPeri/assets/6839261/14cde844-e8cb-4bb1-974b-3bbd995e8ab6" height="250"/>
+
+
+
+
+## Mesures
+J'utilise le logiciel [imageJ](https://imagej.net/ij/) pour réaliser mes mesures.
+
+Les mesures que j'ai réalisées sont pour la plupart très classiques et on peut les trouver dans de nombreuses publications scientifiques : 
+
++ diamètre total (**dm**)
++ hauteur de la spire (**wh**)
++ épaisseur de la spire (**ww**)
++ diamètre de l'ombilic (**uw**).
+
+J'ai rajouté une mesure inédite : l'écart entre les côtes au niveau de la dernière spire (**e**) afin de prendre en compte la densité de la costulation.
+![image](https://github.com/nebetbastet/midOxfPeri/assets/6839261/5b7373e7-f30d-4ce0-b35d-1e09f858102d)
+
+
+## Ammonites références
+
+Dans le livre "Les Ammonites et les Oursin de l'Oxfordien du Poitou" (1995), P. Branger cite un nombre limité d'espèces de *Perisphinctidae* présentes dans la zous-zone à *Parandieri* (tableaux 2&3, planches 8&9) :
+
+* *Passendorferia birmensdorfense*
+* *Sequeirosia trichoplocus*
+* *Otosphinctes crotalinus*
+* *Otosphinctes siemiradzkii*
+* *Dichotomosphinctes elisabethae*
+* *Subdiscosphinctes mindowe*
+
+Afin d'avoir des points de références, j'ai récupéré dans la littérature scientifiques ou sur certains sites les données de différents individus appartenant aux les espèces citées ci-dessus. J'ai rajouté à ces espèces *Dichotomosphinctes luciae* et *Dichotomosphinctes luciaeformis* (d'après Głowniak 2007, *D. elisabethae*, *D. lucia* et *D. luciaeformis* sont différents morphes de la même espèce). J'ai également rajouté *Subdiscosphinctes kreutzi* car j'ai trouvé très peu d'information concernant *S. mindowe*.
+
+
+Avec des diamètre allant de allant de `r min(data$dm[data$ref!="No"])` à `r max(data$dm[data$ref!="No"])`, les ammonites "références" sont en moyenne plus grandes que les ammonites que j'ai ramassées. 
+
+Les données de ces ammonites références ont été intégrées à mes données et servent à comparer mes ammonites aux ammonites de la littérature.
+
+Ci-dessous vous trouverez la provenance et l'espèce des ammonites références utilisées dans cette analyse :
+
+```{r Ammonite reference,echo = FALSE, results="asis"}
+
+ref.df2 = ref.df[,c("Espèce","Source","X9","Espèce_dim")]
+ref.df2$Source[ref.df2$Source=="HC"]="https://www.ammonites.org/"
+ref.df2$Source[ref.df2$Source=="GLOW"]="Głowniak 2007"
+ref.df2$Source[ref.df2$Source=="ENAY"]="Enay 1966"
+ref.df2$Source[ref.df2$Source=="GYGI"]="Gygi 2001"
+ref.df2$Source[ref.df2$Source=="JSD"]="http://jsdfossiles.com/"
+
+ref.df2[is.na(ref.df2[,3]),3]=""
+
+
+colnames(ref.df2)=c("Espèce","Source","","Abrévation")
+kable(ref.df2, row.names=FALSE) %>% kable_styling("striped")
+
+```
+
+
+
+## Calcul de ratios
+J'ai calculé différents ratios que l'on trouve pour la plupart dans la littérature scientifique :
+
++ **UWI** = uw/dm : Umbilical Width Index = Indice de Largeur Ombilical, représente le rapport entre le diamètre de l'ombilic et celui de la coquille, ce qui permet de mesurer le degré d'involution (plus une coquille est involute, plus les tours se recouvrent)
++ **WWI** = ww/wh : Whorl width index = Indice de Largeur de la Spire, mesure le ratio entre la largeur et la hauteur d'une spire. Cela permet de mesurer si une coquille est plutôt mince ou épaisse (niveau de compression).
++ **Shape** = ww/dm : Shape = Forme, représente ici la largeur de la coquille sur son diamètre. C'est une autre mesure du niveau de compression de la coquille.
++ **WER** =  (dm/(dm-wh))^2 : Whorl expansion rate = Taux d'expansion des spires, représente le taux auquel le diamètre de la coquille augmente par tour.
++ **WHI** = wh/dm : Whorl height index = Indice de Hauteur de la spire, represente le ratio de la hauteur de la dernière spire et le diamètre de la coquille entière. C'est une autre façon de calculer le taux auquel le diamètre de la coquille augmente par tour
++ **o** = e/dm : ornementation, densité de la costulation
+
+
+
+
+## Méthode d'analyse
+
+```{r analyse, fig.show="hide", include=TRUE}
+
+# harmoniser ####
+HC_JDS=ref.df[ref.df$Source%in%c("HC","JSD"),"Numéro"]
+data$DirectMeasure="No"
+data[as.numeric(rownames(data))>=500,"DirectMeasure"]="Yes"
+data[HC_JDS,"DirectMeasure"]="No"
+
+varToCorrect=c("UWI","WWI","WHI","Shape","WER")
+varToCorrect=c("WWI","Shape")
+data0=data
+x=as.matrix(data0[,varToCorrect])
+batch=data0$DirectMeasure
+data[,varToCorrect]=t(limma::removeBatchEffect(t(x), batch=batch))
+
+beta=coeffBatch(x,batch=batch)
+saveRDS(beta,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/beta.RDS")
+
+
+# Labeling ammonites ####
+data$label="?"
+data[as.character(ref.df$Numéro),"label"]=ref.df$Espèce_dim
+data$label2="?"
+data[as.character(ref.df$Numéro),"label2"]=ref.df$Name
+
+# Colors of labels ####
+col_label=hues::iwanthue(n=length(unique(data$label))) %>% setNames(unique(data$label))
+col_cl0=c( yellow = "#f3c300", purple = "#875692", 
+         orange = "#f38400", lightblue = "#a1caf1", red = "darkgreen", buff = "#c2b280", 
+         gray = "#848482", green = "#008856", purplishpink = "#e68fac", 
+         blue = "#0067a5", yellowishpink = "#f99379", violet = "#604e97", 
+         orangeyellow = "#f6a600", purplishred = "#b3446c", greenishyellow = "#dcd300", 
+         reddishbrown = "#882d17", yellowgreen = "#8db600", yellowishbrown = "#654522", 
+         reddishorange = "#e25822", olivegreen = "#2b3d26")  %>% setNames(paste0("cl",1:20))
+
+
+# Selecting variables for PCA + scaling ####
+sel_var=c("dm","WWI","WER","UWI","Shape","WHI","o")
+data_pca=data[,sel_var]
+data_pca=scale(data_pca) %>% data.frame()
+
+# PCA #####
+res.pca=PCA(data_pca,graph = FALSE)
+pc_var=cumsum(res.pca$eig[,2])
+nb_axe=min(which(pc_var>80))
+pca.coord=rbind(res.pca$ind$coord,res.pca$ind.sup$coord)
+data_plot=merge(pca.coord,data,by="row.names") %>%
+  data.frame()
+
+data_plot$names=data_plot$Row.names
+data_plot$names[as.numeric(data_plot$Row.names)>=500]=data_plot$label2[as.numeric(data_plot$Row.names)>=500]
+rownames(data_plot)=data_plot$Row.names
+
+# clustering #####
+FUNcluster=function(x,k) {
+  hc=hclust(dist(x), method="ward.D2")
+  clustering=cutree(hc,k=k) #%>% setNames(rownames(x))
+  res=list()
+  res[["cluster"]]=clustering
+  return(res)
+}
+
+# Determiner le nombre optimal de clusters
+fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
+k=5
+# Bootrapping ####
+pc=0.7
+R=500
+
+boot=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+for (r in 1:R) {
+  set.seed(r)
+  index_r=sample(rownames(pca.coord),round(pc*nrow(pca.coord)))
+  clustering_r=(FUNcluster(pca.coord[index_r,1:nb_axe],k=k))$cluster
+  boot_r=matrix(0,nrow=nrow(pca.coord),ncol=nrow(pca.coord))
+  colnames(boot_r)=rownames(boot_r)=rownames(pca.coord)
+  for (clr in clustering_r) {
+    ind_cl=index_r[clustering_r==clr]
+    boot_r[ind_cl,ind_cl]=1
+
+  }
+  boot=boot+boot_r
+ # print(max(boot))
+}
+colnames(boot)=rownames(boot)=rownames(pca.coord)
+nb_cl=apply(boot,1,max)
+boot2=boot/nb_cl
+colnames(boot2)=rownames(boot2)=rownames(pca.coord)
+pheatmap(boot2, clustering_method="ward.D2")
+fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
+clustering_boot=paste0("cl",(FUNcluster(boot2,k=5))$cluster) %>% setNames(rownames(pca.coord))
+col_cl2=col_cl0[unique(clustering_boot)]
+
+# Umap ####
+res_umap=umap(pca.coord[,1:nb_axe])
+colnames(res_umap$layout)=paste0("UMAP",1:2)
+data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
+rownames(data_plot2)=data_plot2$Row.names
+data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
+rownames(data_plot2)=data_plot2$Row.names
+data_plot2$clustering_boot=clustering_boot[data_plot2$Row.names]
+
+# Saving files ####
+saveRDS(data_plot2,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/data.RDS")
+saveRDS(res_umap,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/res_umap0.RDS")
+
+```
+
+L'analyse n'a porté que sur les variables suivantes :
+
++ dm
++ WWI
++ WER
++ UWI
++ Shape
++ WHI
++ o
+
+Je ne souhaite pas rentrer dans le détail de mon analyse car ce document est adressé à un grand public. Le code R est disponible en cliquant sur les "Show" ci-dessus.
+
+L'idée de l'analyse est la suivante : identifier des groupes d'ammonites se ressemblant et créer un graphique résumant les caractéristiques de toutes les ammonites. Le graphique se nomme une UMAP, chaque point représente une ammonite et plus ces ammonites sont proches, plus elles se ressemblent. Plus elles sont éloignées, plus elles sont différentes.
+
+# Résultats
+
+La UMAP résumant les données est présentée ci-dessous. Les couleurs représent les cinq groupes de ressemblance qui ont été identfiés.
+
+```{r umap clusters,  include=TRUE}
+
+
+    p <- ggplot(data_plot2,aes(x=UMAP1,y=UMAP2,label=names)) +
+      geom_point(aes(color = clustering_boot), size=3) + 
+      ggtitle("Groupes")+theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = clustering_boot)) +
+  scale_color_manual(values=col_cl2) 
+
+print(p)
+    
+
+
+```
+
+
+# Conclusion
+
+# Science collaborative : application shiny
+
+
+# Références 
+
+Branger, P., Nicolleau, P., & Vadet, A. (1995). Les ammonites et les oursins de l'Oxfordien du Poitou:(faciès à spongiaires de l'Oxfordien moyen et supérieur). Musees de la ville de Niort et Association pour la promotion de la geologie en Poitou-Charentes-Vendee.
+
+Énay, R. (1966). L'Oxfordien dans la moitié sud du Jura français. Étude stratigraphique. Tome II. Publications du musée des Confluences, 8(2), 325-77.
+
+Głowniak, E., & Wierzbowski, A. (2007). Taxonomical revision of the perisphinctid ammonites of the Upper Jurassic (Plicatilis to Planula zones) described by Józef Siemiradzki (1891) from the Kraków Upland. Volumina Jurassica, 5(1), 27-147.
+
+Gygi, R. A., & Engesser, B. (2001). Perisphinctacean ammonites of the type Transversarium Zone (Middle Oxfordian, Late Jurassic) in northern Switzerland. Naturhistorisches Museum.
+
