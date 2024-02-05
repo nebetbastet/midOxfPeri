@@ -41,6 +41,9 @@ code.r{ /* Code block */
 pre { /* Code block - determines code spacing between lines */
     font-size: 14px;
 }
+p.caption {
+  font-size: 0.8em;
+}
 </style>
 
 
@@ -86,9 +89,19 @@ coeffBatch=function(x,batch=batch) {
 ```
 
 
+# Introduction
+
 J'adore les fossiles, et plus particulièrement les ammonites. J'en ai ramassé des centaines, notamment dans le Poitou.
 J'aime bien les examiner, les nettoyer et essayer de les identifier (au moins au niveau du genre ou de la famille).
 Hélas ! Une famille d'ammonites, les *Perisphinctidae* me donne du fil à retordre. Non seulement je n'arrive pas à les identifier, mais je n'arrive même pas à les classer en fonction de leur ressemblance. Toutes les formes intermédiaires semblent exister, ce qui suscite beaucoup de frustration chez moi...
+
+```{r images, fig.cap = c("Les Perisphinctidae sont des ammonites avec une coquille\ngénéralement évolute et costulée"), fig.show=TRUE, results="asis"}
+
+knitr::include_graphics("ammo.png")
+
+
+
+```
 
 J'ai décidé récemment de prendre le taureau par les cornes et d'employer les grands moyens : je mesurerai différents caractères morphologiques des coquilles de mes ammonites (taille, épaisseur, etc.) et je demanderai aux mathématiques et aux statistiques de créer des groupes d'ammonites cohérents.
 
@@ -96,7 +109,7 @@ Cela permettra déjà de répondre à un premier objectif (strictement personnel
 
 Mais j'ai l'intention d'aller plus loin : comparer mes ammonites à des ammonites identifiées et pour lesquels je peux obtenir les mêmes données morphologiques que pour les miennes. Cela permettra de me fournir des pistes pour l'identification (l'identification des  *Perisphinctidae* étant **extrêmement** complexe, il vaut mieux ne pas être trop affirmatif/ve).
 
-Enfin, ce projet se veut utile à d'autres collectionneurs et collectionneuses. Je vous proposerai une application shiny, déjà disponible [ici](https://nebetbastet.shinyapps.io/midOxfPeri/)), permettant de comparer vos ammonites aux miennes, et ainsi de vous donner des pistes pour l'identification. 
+Enfin, ce projet se veut utile à d'autres collectionneurs et collectionneuses. Je vous proposerai une application shiny, déjà disponible [ici](https://nebetbastet.shinyapps.io/midOxfPeri/), permettant de comparer vos ammonites aux miennes, et ainsi de vous donner des pistes pour l'identification. 
 
 **Attention** : cette comparaison n'est pertinente que si vos ammonites proviennent du même référentiel que le mien, à savoir des *Perisphinctidae* de petite taille (pas plus de 12 cm) et provenant du même niveau que moi : Oxfordien moyen, zone à *Transversarium*, sous-zone à *Parandieri*. Si vos ammonites proviennent d'un niveau proche (par exemple, sous-zone à *Luciaeformis*), je pense qu'une comparaison peut rester pertinente dans une certaine mesure.
 
@@ -438,7 +451,7 @@ print(p)
 Concentrons nous toujours sur les grandes ammonites. On constate que plus une ammonite est évolute, plus elle est située à gauche du graphique, et plus elle est involute, plus elle est située à droite. Les ammonites références sont situées le long d'un continuum qui correspond aux descriptions que l'on trouve dans la littérature : les *Otosphinctes* et *Passendorferia* sont décrites comme des genres évolutes, *Sequeirosia* comme légèrement plus involutes que *Passendorferia*, *Dichotomosphinctes* comme étant "plutôt évolute" et *Subdichotomosphinctes* comme étant "involute". 
 On constate que le caractère "evolute"/"involute" est vraiment continu : il ne semble pas y avoir de seuil franc, surtout entre les <span style="color: #f3c300;">cl1</span> et <span style="color: #f38400;">cl3</span>.
 
-Concentrons nous désormais sur les clusters de petites ammonites : <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #006400;">cl5</span>. Il est intéressant de remarquer, que ces petites ammonites présentent le même "motif" que les grandes : les plus évolutes sont situés à gauche, les plus involutes à droite. Il est à noter que le cl5 se distingue par une épaisseur inhabituelle comme le montre le graphique ci-dessous: 
+Concentrons nous désormais sur les clusters de petites ammonites : <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #006400;"><span style="color: #006400;">cl5</span></span>. Il est intéressant de remarquer, que ces petites ammonites présentent le même "motif" que les grandes : les plus évolutes sont situés à gauche, les plus involutes à droite. Il est à noter que le <span style="color: #006400;">cl5</span> se distingue par une épaisseur inhabituelle comme le montre le graphique ci-dessous: 
 
 ```{r umap Shape,  include=TRUE}
 
@@ -458,7 +471,7 @@ print(p)
 
 Mon hypothèse pour l'instant est que les clusters <span style="color: #006400;">cl5</span>, <span style="color: #875692;">cl2</span> et <span style="color: #a1caf1;">cl4</span> constituent plus ou moins les reflets des clusters <span style="color: #c2b280;">cl6</span>, <span style="color: #f38400;">cl3</span> et <span style="color: #f3c300;">cl1</span> et représentent leurs formes juvéniles.
 
-Ce qui me questionne, c'est le le cluster <span style="color: #006400;">cl5</span>. Est-il vraiment la forme juvénile du cluster <span style="color: #c2b280;">cl6</span> ? Ou bien, les formes juvéniles du cl <span style="color: #c2b280;">cl6</span> ne seraient-elles pas plutôt dans le cluster <span style="color: #875692;">cl2</span>, aux côtés des formes juvéniles du  <span style="color: #f38400;">cl3</span> ? Ou peut-être dans les deux ?
+Ce qui me questionne, c'est le le cluster <span style="color: #006400;">cl5</span>. Est-il vraiment la forme juvénile du cluster <span style="color: #c2b280;">cl6</span> ? Ou bien, les formes juvéniles du cluster <span style="color: #c2b280;">cl6</span> ne seraient-elles pas plutôt dans le cluster <span style="color: #875692;">cl2</span>, aux côtés des formes juvéniles du  <span style="color: #f38400;">cl3</span> ? Ou peut-être dans les deux ?
 
 Ces analyses apportent des informations, mais il reste encore beaucoup de questions à résoudre.
 
@@ -470,25 +483,60 @@ Même si ces groupes ne correspondent pas *exactement* à la taxonomie, on ne pe
 
 Ainsi, cette petite étude me permettra de partir sur les pistes suivantes :
 
-* les ammonites du cluster cl6 sont probablement des *Otosphinctes* et *Passendorferia*  
-* les ammonites du cluster cl3 sont probablement des *Sequeirosia*, *Dichotomosphinctes* ou des *Subdichotomosphinctes* à "tendance évolute" 
-* les ammonites du cluster cl1 sont probablement des *Subdichotomosphinctes*
+* les ammonites du cluster <span style="color: #c2b280;">cl6</span> sont probablement des *Otosphinctes* et *Passendorferia*  
+* les ammonites du cluster <span style="color: #f38400;">cl3</span> sont probablement des *Sequeirosia*, *Dichotomosphinctes* ou des *Subdichotomosphinctes* à "tendance évolute" 
+* les ammonites du cluster <span style="color: #f3c300;">cl1</span> sont probablement des *Subdichotomosphinctes*
 
 Je pourrai vérifier ces pistes en examinant des caractéristiques morphologiques supplémentaires qui n'ont pas été mesurées dans cette petite "étude" (forme de la section et diverses caractéristiques de l'ornementation, notamment).
 
 Quant aux clusters <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #006400;">cl5</span> qui représentent des petites ammonites, je partirai (pour l'instant) sur ces hypothèses : 
 
-* les ammonites du cluster cl5 sont peut-être des *Otosphinctes* et *Passendorferia* juvéniles
-* les ammonites du cluster cl2 sont peut-être des formes juvéniles de *Sequeirosia*, *Dichotomosphinctes* ou de *Subdichotomosphinctes* à "tendance évolute" 
-* les ammonites du cluster cl4 sont peut-être des *Subdichotomosphinctes* juvéniles
+* les ammonites du cluster <span style="color: #006400;">cl5</span> sont peut-être des *Otosphinctes* et *Passendorferia* juvéniles
+* les ammonites du cluster <span style="color: #875692;">cl2</span> sont peut-être des formes juvéniles de *Sequeirosia*, *Dichotomosphinctes* ou de *Subdichotomosphinctes* à "tendance évolute" 
+* les ammonites du cluster <span style="color: #a1caf1;">cl4</span> sont peut-être des *Subdichotomosphinctes* juvéniles
 
-Je n'ai trouvé aucune description de petites *Perisphinctidae* (< 4 cm) dans la littérature, pour la sous-zone à *Parandieri* en tout cas. J'ai plusieurs fois demandé sur des forums ou groupes spécialisés ce que pouvaient être ces petites ammonites, et j'ai obtenu peu de réponses, ce qui indique à mon avis, que l'on ne sait pas trop de dont il s'agit. Une personne m'a répondu qu'il pouvait s'agir de formes juvéniles et/ou de tours internes de *Dichotomosphinctes*. Je reste donc sur l'hypothèse "juvéniles/tours internets".
+Je n'ai trouvé aucune description de petites *Perisphinctidae* (< 4 cm) dans la littérature, pour la sous-zone à *Parandieri* en tout cas. J'ai plusieurs fois demandé sur des forums ou groupes spécialisés ce que pouvaient être ces petites ammonites, et j'ai obtenu peu de réponses, ce qui indique à mon avis, que l'on ne sait pas trop de dont il s'agit. Une personne m'a répondu qu'il pouvait s'agir de formes juvéniles et/ou de tours internes de *Dichotomosphinctes*. Je reste donc sur l'hypothèse "juvéniles/tours internes".
 
 En l'absence de toute description de petites *Perisphinctidae* dans la littérature, je ne peux pas vraiment vérifier mes hypothèses sur les clusters <span style="color: #875692;">cl2</span>, <span style="color: #a1caf1;">cl4</span> et <span style="color: #006400;">cl5</span>. Mais je crois qu'avoir des hypothèses et avoir su les regrouper, c'est déjà pas mal.
 
 
 
 # Science collaborative : application shiny
+
+J'ai créé une [application](https://nebetbastet.shinyapps.io/midOxfPeri/) permettant deux choses :
+
+* visualiser mon jeu de données
+* comparer vos ammonites aux miennes
+
+## Visualier mon jeu de données
+
+Si vous souhaitez uniquement visualiser mon jeu de données, vous pouvez cocher la case "Je n'ai pas de données à entrer".
+
+Sur la droite, vous aurez la fameuse "UMAP".
+
+En bas à gauche, le menu "Que visualiser ?" vous permettra de choisir la variable que vous choisissez visualiser : les groupes, le diamètre, la densité de la costulation, etc.
+
+## Comparer votre ammonites aux miennes
+
+Comme je l'ai précisé en introduction, cette comparaison n’est pertinente que si vos ammonites proviennent du même référentiel que le mien, à savoir des *Perisphinctidae* de petite taille (pas plus de 12 cm) et provenant de l'Oxfordien moyen, zone à *Transversarium*, sous-zone à *Parandieri*. 
+Si vos ammonites proviennent d’un niveau proche, je pense qu’une comparaison peut rester pertinente, mais restez prudent-e et critique.
+
+Pour comparer votre ammonite à la mienne, il faudra la mesurer comme indiqué [ci-dessus](https://nebetbastet.github.io/midOxfPeri/#Mesures) et entrer les mesures sur l'application.
+Je pense que mesurer sur à partir de photographies peut induire un biais via la perspective (biais que j'ai tenté de corriger dans l'analyse de données), c'est pour cela que j'ai fait en sorte que vous pouviez indiquer la méthode utilisée (mesures directes sur l'ammonite ou mesures à partir de photographies).
+
+Votre ammonite se présentera sous la forme d'un point rouge appelé "Ton ammonite". Vous pourrez visualiser son positionnement sur la UMAP. Ce positionnement vous permettra de vous comparer à moi, car les points proches représentent des ammonites similaires.
+
+```{r image umap, fig.cap = c("Je viens de rentrer les mesures d'une petite ammonite fine et plutôt évolute. Elle semble ressembler aux ammonites du cluster 2."), fig.show=TRUE, results="asis", fig.with=10}
+
+knitr::include_graphics("umap.png")
+
+
+
+```
+
+
+Amuez-vous bien ! et j'espère que cela pourra vous donner des pistes pour une identification :) !
+
 
 ```{r pictures,  include=TRUE}
 
