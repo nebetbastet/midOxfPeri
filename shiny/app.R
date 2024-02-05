@@ -3,14 +3,17 @@ library(ggplot2)
 library(tidyverse)
 library(viridis)
 library(FactoMineR)
-library(umap)
 library(shinythemes)
 library(shinydashboard)
+library(uwot)
 options(shiny.maxRequestSize = 160*1024^2)
 
 dataset <- readRDS("data.RDS")
-res_umap0 <- readRDS("res_umap0.RDS")
+#res_umap0 <- readRDS("res_umap0.RDS")
 beta <- readRDS("beta.RDS")
+
+#setwd("C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri")
+
 
 # ui ####
 ui <- fluidPage(
@@ -22,6 +25,8 @@ ui <- fluidPage(
  # titlePanel("Perisphinctidae de l'Oxfordien Moyen"),
   
   sidebarPanel(
+    
+    checkboxInput("Noinput","Je n'ai pas de données à entrer",FALSE),
     
     numericInput("dm", "diamètre (dm)", 0, min = 0, max = 100),
     numericInput("wh", "hauteur de la spire (wh)", 0, min = 0, max = 100),
@@ -52,7 +57,7 @@ ui <- fluidPage(
 
 
 input=list()
-input$dm=10
+input$dm=20
 input$wh=3
 input$uw=5
 input$e=0.2
@@ -60,6 +65,7 @@ input$ww=2
 input$value="densite"
 input$unit="cm"
 input$method="Mesure directe"
+input$Noinput=FALSE
 
 # server ####
 server <- function(input, output) {
@@ -128,12 +134,17 @@ server <- function(input, output) {
     nb_axe=min(which(pc_var>80))
     
     # Umap ####
-    #set.seed(0)
-    #res_umap0=umap(pca.coord[rownames(pca.coord)!="newData",1:nb_axe])
-    res_umap.new = predict(res_umap0, pca.coord[rownames(pca.coord)=="newData",1:nb_axe,drop=FALSE])
-    res_umap.new
-    umap.coord=rbind(res_umap0$layout,res_umap.new) %>% data.frame()
+    set.seed(11)
+    res_umap=uwot::umap(pca.coord[1:(nrow(pca.coord)-1),1:nb_axe],
+                        ret_model = TRUE,n_neighbors = 15, min_dist = 0.001)
+  
+    umap.coord0 <- umap_transform(pca.coord[nrow(pca.coord),1:nb_axe,drop=FALSE],res_umap) %>% 
+      data.frame()
+    umap.coord=rbind(data.frame(res_umap$embedding),umap.coord0)
+    #saveRDS(umap.coord,"umap.coord.RDS")
+    rownames(umap.coord)=rownames(pca.coord)
     colnames(umap.coord)=paste0("UMAP",1:2)
+
     
     # Plot
     data_plot=merge(umap.coord,dataset[,-which(colnames(dataset)%in%c("UMAP1","UMAP2"))],
@@ -150,8 +161,14 @@ server <- function(input, output) {
     #data_plot$densite=max(data_plot$o)-data_plot$o
 
     data_plot$value=data_plot[,input$value]   
+    
+    if (input$Noinput) {
+      data_plot=data_plot[-nrow(data_plot),]
+    }
+    
     data_plot=data.frame(data_plot)
-      
+    
+
     
   })
   
