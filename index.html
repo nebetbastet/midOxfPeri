@@ -2543,8 +2543,8 @@ sont proches, plus ils se ressemblent. Au contraire, plus ils sont
 <div id="résultats" class="section level1">
 <h1>Résultats</h1>
 <p>La UMAP résumant les données est présentée ci-dessous. Les couleurs
-représent les six clusters (=groupes de ressemblance) qui ont été
-identfiés.</p>
+représentent les six clusters (=groupes de ressemblance) qui ont été
+identifiés.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_plot2,<span class="fu">aes</span>(<span class="at">x=</span>UMAP1,<span class="at">y=</span>UMAP2,<span class="at">label=</span>names)) <span class="sc">+</span></span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>      <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> clustering_boot), <span class="at">size=</span><span class="dv">3</span>) <span class="sc">+</span> </span>
 <span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>      <span class="fu">ggtitle</span>(<span class="st">&quot;Groupes&quot;</span>)<span class="sc">+</span><span class="fu">theme_bw</span>()<span class="sc">+</span> </span>
@@ -2699,8 +2699,22 @@ hypothèses et avoir su les regrouper, c’est déjà pas mal.</p>
 </div>
 <div id="science-collaborative-application-shiny" class="section level1">
 <h1>Science collaborative : application shiny</h1>
-<p>J’ai créé une <a href="https://nebetbastet.shinyapps.io/midOxfPeri/">application</a>
-permettant deux choses :</p>
+<p>J’ai créé une <a href="https://nebetbastet.shinyapps.io/midOxfPeri/">application</a>. Si
+vous vous y connectez, vous verrez deux choses :</p>
+<ul>
+<li>un panneau gauche où vous pourrez entrer des données et choisir ce
+que vous souhaitez visualiser.</li>
+<li>une “UMAP” à droite, avec chaque point représentant une ammonite.
+Rappelez vous que sur une UMAP, la distance entre les points
+représentent à quel point ils sont différents ou similaires.</li>
+</ul>
+<p><strong>Remarque</strong> : Vous noterez que la UMAP de l’application
+n’est pas exactement la même que celle représentée sur cette page. C’est
+parce que l’algorithme de la UMAP utilise des techniques aléatoires pour
+trouver la meilleure représentation. Ce qui compte, c’est la distance
+entre les points (et vous constaterez Zque de ce point de vue là, les
+deux umaps sont très similaires.)</p>
+<p>permettant deux choses :</p>
 <ul>
 <li>visualiser mon jeu de données</li>
 <li>comparer vos ammonites aux miennes</li>

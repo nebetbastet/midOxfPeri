@@ -375,7 +375,7 @@ L'idée de l'analyse est la suivante : identifier des groupes d'ammonites se res
 
 # Résultats
 
-La UMAP résumant les données est présentée ci-dessous. Les couleurs représent les six clusters (=groupes de ressemblance) qui ont été identfiés. 
+La UMAP résumant les données est présentée ci-dessous. Les couleurs représentent les six clusters (=groupes de ressemblance) qui ont été identifiés. 
 
 ```{r umap clusters,  include=TRUE}
 
@@ -506,7 +506,16 @@ En l'absence de toute description de petites *Perisphinctidae* dans la littérat
 
 # Science collaborative : application shiny
 
-J'ai créé une [application](https://nebetbastet.shinyapps.io/midOxfPeri/) permettant deux choses :
+J'ai créé une [application](https://nebetbastet.shinyapps.io/midOxfPeri/).
+Si vous vous y connectez, vous verrez deux choses :
+
+* un panneau gauche où vous pourrez entrer des données et choisir ce que vous souhaitez visualiser.
+* une "UMAP" à droite, avec chaque point représentant une ammonite. Rappelez vous que sur une UMAP, la distance entre les points représentent à quel point ils sont différents ou similaires.
+
+
+**Remarque** : Vous noterez que la UMAP de l'application n'est pas exactement la même que celle représentée sur cette page. C'est parce que l'algorithme de la UMAP utilise des techniques aléatoires pour trouver la meilleure représentation. Ce qui compte, c'est la distance entre les points (et vous constaterez Zque de ce point de vue là, les deux umaps sont très similaires.)
+
+permettant deux choses :
 
 * visualiser mon jeu de données
 * comparer vos ammonites aux miennes
