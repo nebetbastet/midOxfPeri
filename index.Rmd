@@ -342,17 +342,20 @@ clustering_boot=paste0("cl",(FUNcluster(boot2,k=6))$cluster) %>% setNames(rownam
 col_cl2=col_cl0[unique(clustering_boot)]
 
 # Umap ####
-res_umap=umap(pca.coord[,1:nb_axe])
-colnames(res_umap$layout)=paste0("UMAP",1:2)
-data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
-rownames(data_plot2)=data_plot2$Row.names
-data_plot2=merge(data_plot,res_umap$layout,by.x="Row.names",by.y="row.names")
+# library(uwot)
+# set.seed(11)
+# res_umap=uwot::umap(pca.coord[,1:nb_axe],ret_model = TRUE,n_neighbors = 15, min_dist = 0.001)
+# umap.coord=res_umap$embedding %>% data.frame()
+# rds : pour garder mêmes coorodnnnées
+umap.coord=readRDS("C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/umap.coord.RDS")
+colnames(umap.coord)=paste0("UMAP",1:2)
+data_plot2=merge(data_plot,umap.coord,by.x="Row.names",by.y="row.names")
 rownames(data_plot2)=data_plot2$Row.names
 data_plot2$clustering_boot=clustering_boot[data_plot2$Row.names]
 
 # Saving files ####
 saveRDS(data_plot2,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/data.RDS")
-saveRDS(res_umap,"C:/Users/nebet/Documents/Fossiles/Oxfordien du Poitou/Photos 2/shiny/midOxfPeri/res_umap0.RDS")
+
 
 ```
 
