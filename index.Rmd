@@ -67,6 +67,7 @@ library(ggrepel)
 library(umap)
 library(pheatmap)
 library(kableExtra)
+library(patchwork)
 
 # functions to compute coeff ####
 coeffBatch=function(x,batch=batch) {
@@ -309,6 +310,15 @@ FUNcluster=function(x,k) {
   res[["cluster"]]=clustering
   return(res)
 }
+FUNcluster2=function(x,k) {
+  hc=hclust(dist(x), method="complete")
+  clustering=cutree(hc,k=k) #%>% setNames(rownames(x))
+  res=list()
+  res[["cluster"]]=clustering
+  return(res)
+}
+
+
 
 # Determiner le nombre optimal de clusters
 fviz_nbclust(pca.coord[,1:nb_axe], FUNcluster, method = "silhouette")+ theme_classic()
@@ -336,10 +346,13 @@ colnames(boot)=rownames(boot)=rownames(pca.coord)
 nb_cl=apply(boot,1,max)
 boot2=boot/nb_cl
 colnames(boot2)=rownames(boot2)=rownames(pca.coord)
-pheatmap(boot2, clustering_method="ward.D2")
-fviz_nbclust(boot2, FUNcluster, method = "silhouette")+ theme_classic()
-clustering_boot=paste0("cl",(FUNcluster(boot2,k=6))$cluster) %>% setNames(rownames(pca.coord))
+pheatmap(boot2, clustering_method="complete")
+fviz_nbclust(boot2, FUNcluster2, method = "silhouette")+ theme_classic()
+clustering_boot=paste0("cl",FUNcluster2(boot2,k=6)$cluster)
+names(clustering_boot)=names(FUNcluster2(boot2,k=6)$cluster)
+
 col_cl2=col_cl0[unique(clustering_boot)]
+
 
 # Umap ####
 # library(uwot)
@@ -369,9 +382,157 @@ L'analyse n'a porté que sur les variables suivantes :
 + WHI
 + o
 
-Je ne souhaite pas entrer dans le détail de mon analyse car ce document est adressé à un grand public. Si vous voulez en savoir plus, le code R est disponible en cliquant sur les "Show" ci-dessus.
 
 L'idée de l'analyse est la suivante : identifier des groupes d'ammonites se ressemblant et créer un graphique résumant les caractéristiques de toutes les ammonites. Le graphique se nomme une UMAP, chaque point représente une ammonite et plus ces points-ammonites sont proches, plus ils se ressemblent. Au contraire, plus ils sont éloignées, plus ils sont morphologiquement différents.
+
+Si vous souhaitez en savoir plus sur le détail de l'analyse, cliquez ci-dessous :
+
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName"> Détails de l'analyse </button>  
+<div id="BlockName" class="collapse">  
+
+J'ai d'abord réalisé une ACP à partir des variables ci-dessus (centrées-réduites).
+Voici les résultats de l'ACP.
+
+Tout d'abord le pourcentage de variance expliquées par chaque axe de l'ACP :
+
+```{r pc axes, fig.height=3}
+
+h=res.pca$eig[,2] %>% setNames(paste0("Dim",1:nrow(res.pca$eig)))
+barplot(h, main="Pourcentage de variance de chaque axe", las=2)
+
+
+```
+
+Voici les graphiques des variables qui montrent les corrélations entre les variables et les axes de l'ACP:
+
+```{r pc var, fig.height=4}
+
+plot(res.pca,choix="var")
+plot(res.pca,c(1,3),choix="var")
+
+
+```
+
+
+
+
+J'ai choisi de travailler sur les trois premiers axes, qui cumulent une variance d'au moins 80%.
+
+Ces trois premiers axes ont été utilisés pour réaliser un clustering hiérarchique. Pour avoir un clustering plus robuste, j'ai fait du bootstraping. J'ai rééchantillonné 500 fois mon échantillon avec 70% des individus. A chaque fois j'ai réalisé un clustering (distances euclidiennes, méthode de Ward).
+Cela m'a permis de savoir à quelles fréquences les individus clusterisent entre eux. Ces fréquences peuvent correspondre à des distances : plus des individus clusterisent souvent ensemble, plus ils sont proches.
+J'ai réalisé un clustering final sur ces distances (méthode "complete").
+J'ai obtenu 6 clusters.
+
+Ci-dessous, vous trouverez plusieurs représentation de l'ACP, avec des couleurs représentant ces clusters, l'indice ombilical, le diamètre et l'épaisseur.
+
+```{r pc ind, fig.height=5, fig.with=20}
+
+
+# Clusters
+    p1 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.2,label=names)) +
+      geom_point(aes(color = clustering_boot), size=1) + 
+      ggtitle("Groupes")+
+  theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = clustering_boot),size=2.5) +
+  scale_color_manual(values=col_cl2) +
+  theme(legend.position = "bottom")
+
+    p2 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.3,label=names)) +
+      geom_point(aes(color = clustering_boot), size=1) + 
+      #ggtitle("Groupes")+
+      theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = clustering_boot),size=2.5) +
+  scale_color_manual(values=col_cl2) +
+  theme(legend.position = "none")
+
+
+p=p1+p2
+print(p)
+
+# UWI
+
+    p1 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.2,label=names)) +
+      geom_point(aes(color = UWI), size=1) + 
+      ggtitle("UWI : index omibilical")+
+  theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = UWI),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "bottom")
+
+    p2 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.3,label=names)) +
+      geom_point(aes(color = UWI), size=1) + 
+      #ggtitle("Groupes")+
+      theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = UWI),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "none")
+
+
+p=p1+p2
+print(p)
+
+# Diamètre
+
+    p1 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.2,label=names)) +
+      geom_point(aes(color = dm), size=1) + 
+      ggtitle("Diamètre (cm)")+
+  theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = dm),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "bottom")
+
+    p2 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.3,label=names)) +
+      geom_point(aes(color = dm), size=1) + 
+      #ggtitle("Groupes")+
+      theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = dm),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "none")
+
+
+p=p1+p2
+print(p)
+
+
+# Epaisseur
+
+    p1 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.2,label=names)) +
+      geom_point(aes(color = Shape), size=1) + 
+      ggtitle("Epaisseur rapportée au diamètre")+
+  theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = Shape),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "bottom")
+
+    p2 <- ggplot(data_plot2,aes(x=Dim.1,y=Dim.3,label=names)) +
+      geom_point(aes(color = Shape), size=1) + 
+      #ggtitle("Groupes")+
+      theme_bw()+ 
+      ggrepel::geom_text_repel(data=data_plot2[data_plot2$label!="?",],
+                      aes(label=label,color = Shape),size=2.5) +
+  scale_color_gradientn(colours=wesanderson::wes_palette("Zissou1", 100, type = "continuous")) +
+  theme(legend.position = "none")
+
+
+p=p1+p2
+print(p)
+
+
+
+```
+
+Enfin, j'ai réalisé une UMAP, qui sert avant tout à la visualisation. Son objectif est de représenter en deux dimensions des distances dans des espaces de plus grandes dimensions (ici, 3 dimensions).
+C'est une façon de représenter de manière synthétique les 3 premières dimensions de l'ACP.
+
+
+
 
 # Résultats
 
